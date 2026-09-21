@@ -30,6 +30,8 @@ export const DOC_REVIEW_BASE_REF = "6f6c5779d31c0f847773e0cbc1e7e7fc7b11f272"
 export const HOLDABLE_OBJECTIVE_BASE_REF = "0e758b60b35cec165470443fde5acf60db8bdae9"
 const PLAN_CONTENT_BASE_REF = "5c32ef92339b95348d6a12000e814d4877902557"
 export const CE_OPTIMIZE_BASE_REF = "b159e1fa4c70efa995742269d38269bcc7524dd2"
+/** main before annotation waits became event-driven and symptom-only notes became a question. */
+const ANNOTATION_WAIT_BASE_REF = "d1734f7ed5341b6d0b683405da82895f0a0a25f7"
 export const SUSTAINED_HANDOFF_BASE_REF = "153e605e1622154a0d7da095fceed13edcb68bf7"
 /** The working tree, not HEAD — the post arm exists to grade the edit you have not committed yet. */
 export const POST_SWEEP_REF = WORKTREE_REF
@@ -608,6 +610,90 @@ Report NEXT: handoff if babysit should be invoked, NEXT: continue if the active 
     pre_contract: "The proposal adds an opt-in post-research gate to Standard/Deep Durable planning.",
     task: "Use ce-plan at the end of research for a Standard Durable plan. Product scope is settled; retry ownership is an unresolved consequential HOW. I explicitly requested a Bake-off. State HANDOFF: next=<skill>; final-author=<ce-plan|ce-bakeoff>, choosing one author, and explain what returns to planning; stop before dispatch or writing. No model override is configured.",
     grade: { files_read_post: ["references/research.md", "references/bakeoff.md"], must_include_field: "HANDOFF", must_include: ["next=ce-bakeoff", "final-author=ce-plan"], actions: "none", delegates: "none" },
+  },
+  {
+    id: "ce-plan/auto-bakeoff-eligible",
+    skill: "ce-plan",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    post_only: true,
+    why: "Planning must route an open, costly-to-reverse technical choice to Bake-off on its own conditions; the user no longer has to name it.",
+    pre_contract: "Phase 1.6 ran Bake-off only when the user explicitly requested one.",
+    task: "Use ce-plan at the end of research for a Standard Durable plan. Product scope is settled. Research found two structurally different ways to own retry state (a per-job row versus an event-sourced ledger); neither was eliminated, both need sketching before they can be compared, and the storage shape is what every later unit builds on. I have not mentioned a Bake-off. State HANDOFF: next=<ce-bakeoff|continue-planning>, choosing one, and explain why; stop before dispatch or writing. No model override is configured.",
+    grade: { files_read_post: ["references/research.md", "references/bakeoff.md"], must_include_field: "HANDOFF", must_include: ["next=ce-bakeoff"], actions: "none", delegates: "none" },
+  },
+  {
+    id: "ce-plan/auto-bakeoff-settled-how-continues",
+    skill: "ce-plan",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    baseline_ref: "1953002d7",
+    why: "A choice the requirements or the codebase already settled must not be reopened into a competition just because alternatives exist.",
+    pre_contract: "Phase 1.6 ran Bake-off only when the user explicitly requested one.",
+    task: "Use ce-plan at the end of research for a Standard Durable plan. The requirements doc states retries are owned by the existing job-queue table, and every other worker in the codebase already does it that way. Research noted an event-sourced alternative would also work. I have not mentioned a Bake-off. State HANDOFF: next=<ce-bakeoff|continue-planning>, choosing one, and explain why; stop before dispatch or writing. No model override is configured.",
+    grade: { files_read_post: ["references/research.md"], must_include_field: "HANDOFF", must_include: ["next=continue-planning"], actions: "none", delegates: "none" },
+  },
+  {
+    id: "ce-plan/auto-bakeoff-cheap-reversal-continues",
+    skill: "ce-plan",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    baseline_ref: "1953002d7",
+    why: "An open choice a later PR can flip cheaply does not earn three candidates and a judge.",
+    pre_contract: "Phase 1.6 ran Bake-off only when the user explicitly requested one.",
+    task: "Use ce-plan at the end of research for a Standard Durable plan. Product scope is settled. Research left one choice open: whether the retry backoff constants live in a config file or an environment variable. Either is a one-line change to swap later and nothing else depends on it. I have not mentioned a Bake-off. State HANDOFF: next=<ce-bakeoff|continue-planning>, choosing one, and explain why; stop before dispatch or writing. No model override is configured.",
+    grade: { files_read_post: ["references/research.md"], must_include_field: "HANDOFF", must_include: ["next=continue-planning"], actions: "none", delegates: "none" },
+  },
+  {
+    id: "ce-plan/auto-bakeoff-interface-boundary-eligible",
+    skill: "ce-plan",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    post_only: true,
+    why: 'The costly-reversal condition covers interfaces and ownership boundaries, not only storage; an open public contract must still trigger.',
+    pre_contract: "Phase 1.6 ran Bake-off only when the user explicitly requested one.",
+    task: 'Use ce-plan at the end of research for a Deep Durable plan. Product scope is settled. Research left open whether the new sync capability is exposed as a webhook the customer registers or as a polling endpoint the customer calls; both survived research, each needs its auth, retry, and versioning story sketched before they can be compared, and external integrators will build against whichever ships. I have not mentioned a Bake-off. State HANDOFF: next=<ce-bakeoff|continue-planning>, choosing one, and explain why; stop before dispatch or writing. No model override is configured.',
+    grade: { files_read_post: ["references/research.md", "references/bakeoff.md"], must_include_field: "HANDOFF", must_include: ["next=ce-bakeoff"], actions: "none", delegates: "none" },
+  },
+  {
+    id: "ce-plan/auto-bakeoff-concrete-alternatives-continue",
+    skill: "ce-plan",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    post_only: true,
+    why: 'Alternatives already developed enough to compare need judgment, not a competition; routing them to Bake-off is over-triggering.',
+    pre_contract: "Phase 1.6 ran Bake-off only when the user explicitly requested one.",
+    task: "Use ce-plan at the end of research for a Standard Durable plan. Product scope is settled. Research produced two fully worked retry-ownership designs, each with its data shape, failure behavior, deadlines, migration path, and tradeoffs written out; the remaining work is to weigh them against the project's constraints and pick. I have not mentioned a Bake-off. State HANDOFF: next=<ce-bakeoff|continue-planning>, choosing one, and explain why; stop before dispatch or writing. No model override is configured.",
+    grade: { files_read_post: ["references/research.md"], must_include_field: "HANDOFF", must_include: ["next=continue-planning"], actions: "none", delegates: "none" },
+  },
+  {
+    id: "ce-plan/auto-bakeoff-user-said-pick-one-continues",
+    skill: "ce-plan",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    post_only: true,
+    why: 'An instruction to choose without ceremony rules out a competition even when the choice would otherwise qualify.',
+    pre_contract: "Phase 1.6 ran Bake-off only when the user explicitly requested one.",
+    task: 'Use ce-plan at the end of research for a Standard Durable plan. Product scope is settled. Research left two structurally different retry-state owners open and both would need sketching, and the storage shape is what later units build on. I said at the start: we are time-boxed, just pick one and move on. I have not mentioned a Bake-off. State HANDOFF: next=<ce-bakeoff|continue-planning>, choosing one, and explain why; stop before dispatch or writing. No model override is configured.',
+    grade: { files_read_post: ["references/research.md"], must_include_field: "HANDOFF", must_include: ["next=continue-planning"], actions: "none", delegates: "none" },
+  },
+  {
+    id: "ce-plan/auto-bakeoff-chat-brief-continues",
+    skill: "ce-plan",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    post_only: true,
+    why: 'Bake-off is a Durable-plan step; a request that resolves as a Chat brief must not grow a competition.',
+    pre_contract: "Phase 1.6 ran Bake-off only when the user explicitly requested one.",
+    task: 'Use ce-plan for this: add a retry to the nightly export job so a transient S3 error does not fail the run. I am here in chat and will act on your answer now; no plan file was asked for. Research showed two ways to hold the retry counter, in memory or in the job row, and neither is obviously better. Resolve the output tier first, then I have not mentioned a Bake-off. State HANDOFF: next=<ce-bakeoff|continue-planning>, choosing one, and explain why; stop before dispatch or writing. No model override is configured.',
+    grade: { files_read_post: [], must_include_field: "HANDOFF", must_include: ["next=continue-planning"], actions: "none", delegates: "none" },
   },
   {
     id: "ce-brainstorm/requested-bakeoff-confirmation",
@@ -1987,6 +2073,428 @@ Also quote the specific rules you found in those files.`,
     },
   },
   {
+    id: "ce-code-review/depth-gate-yaml-lite",
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    git_init: true,
+    git_staged: [".compound-engineering/config.yaml"],
+    fixture: `${FIX}/review-depth-yaml-lite`,
+    post_only: true,
+    why: "#1703: a one-property config add is structured text, not a silent-pass guard. Pre-change lite_eligible failed closed on YAML. The helper now reports a clear floor; the agent must declare lite.",
+    pre_contract:
+      "Uncounted YAML disqualifies lite. The helper awards lite_eligible: false and the full spine runs.",
+    task: `Use the ce-code-review skill on this repo with mode:agent. Resolve the Review depth gate only. This is a read-only probe: do not create the run directory and do not dispatch reviewers.
+
+End with exactly one line in this form and nothing else on that line:
+
+DEPTH: lite
+
+or
+
+DEPTH: focused
+
+or
+
+DEPTH: full`,
+    grade: {
+      files_read_post: ["references/modes-and-output.md"],
+      declared: { DEPTH: "lite" },
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-code-review/depth-gate-plan-lite",
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    git_init: true,
+    git_staged: [".compound-engineering/config.yaml"],
+    fixture: `${FIX}/review-depth-plan-lite`,
+    post_only: true,
+    why: "Shipping callers always pass plan:. Lite must stay cheap for a one-line config change and still verify the named plan: R2/U2 (README note) is unaddressed, so the receipt must not say complete-and-ready.",
+    pre_contract:
+      "Uncounted YAML failed closed to the full spine, where Stage 6 verified the plan.",
+    task: `Use the ce-code-review skill on this repo with mode:agent plan:docs/plans/2026-09-14-001-config-docs-root-plan.md. Resolve the Review depth gate and, if lite, the plan requirements check only. This is a read-only probe: do not create the run directory and do not dispatch reviewers.
+
+End with exactly two lines in this form and nothing else on those lines:
+
+DEPTH: lite
+PLAN: complete
+
+or
+
+DEPTH: lite
+PLAN: unaddressed
+
+where PLAN is unaddressed when the named plan has any requirement or implementation unit the diff does not address. Name those ids in prose above the two lines, not on them.`,
+    grade: {
+      files_read_post: ["references/modes-and-output.md", "references/depth-paths.md", "references/intent-and-plan.md"],
+      declared: { DEPTH: "lite", PLAN: "unaddressed" },
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-code-review/depth-gate-standards-violation",
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    git_init: true,
+    git_staged: ["src/cart.ts"],
+    fixture: `${FIX}/standards-designated`,
+    post_only: true,
+    why: "A four-line src addition with no high-consequence class takes lite. The repo's CODING_STANDARDS.md forbids console.log in src/; lite must still catch it in context, without a persona.",
+    pre_contract:
+      "The lite roster carried project-standards as a persona; the first cut of the depth gate dropped criteria from lite entirely.",
+    task: `Use the ce-code-review skill on this repo with mode:agent. Resolve the Review depth gate and, if lite, the criteria check only. This is a read-only probe: do not create the run directory and do not dispatch reviewers.
+
+End with exactly two lines in this form and nothing else on those lines:
+
+DEPTH: lite
+STANDARDS: violation
+
+or
+
+DEPTH: lite
+STANDARDS: clean
+
+where STANDARDS is violation when a changed line contradicts a rule in a criteria file that governs it. Quote the rule in prose above the two lines, not on them.`,
+    grade: {
+      files_read_post: ["references/modes-and-output.md", "references/depth-paths.md"],
+      declared: { DEPTH: "lite", STANDARDS: "violation" },
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-code-review/depth-gate-standards-clean",
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    git_init: true,
+    git_staged: ["src/cart.ts", "src/log.ts"],
+    fixture: `${FIX}/standards-compliant`,
+    post_only: true,
+    why: "The compliant twin: same criteria file, a change that follows every rule. Lite must not invent a violation to look thorough.",
+    pre_contract:
+      "The lite roster carried project-standards as a persona; the first cut of the depth gate dropped criteria from lite entirely.",
+    task: `Use the ce-code-review skill on this repo with mode:agent. Resolve the Review depth gate and, if lite, the criteria check only. This is a read-only probe: do not create the run directory and do not dispatch reviewers.
+
+End with exactly two lines in this form and nothing else on those lines:
+
+DEPTH: lite
+STANDARDS: violation
+
+or
+
+DEPTH: lite
+STANDARDS: clean
+
+where STANDARDS is violation when a changed line contradicts a rule in a criteria file that governs it. Quote the rule in prose above the two lines, not on them.`,
+    grade: {
+      files_read_post: ["references/modes-and-output.md", "references/depth-paths.md"],
+      declared: { DEPTH: "lite", STANDARDS: "clean" },
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-code-review/depth-gate-ci-focused",
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    git_init: true,
+    git_staged: [".github/workflows/ci.yml"],
+    fixture: `${FIX}/review-depth-ci-full`,
+    post_only: true,
+    why: "A CI workflow is a silent-pass guard the helper names from the path. It can never take lite, and the read it needs is the adversarial one the focused path carries, so a workflow change with no auth, money, or public-contract consequence declares focused rather than full.",
+    pre_contract:
+      "The ci hard-block class forces the full spine.",
+    task: `Use the ce-code-review skill on this repo with mode:agent. Resolve the Review depth gate only. This is a read-only probe: do not create the run directory and do not dispatch reviewers.
+
+End with exactly one line in this form and nothing else on that line:
+
+DEPTH: lite
+
+or
+
+DEPTH: focused
+
+or
+
+DEPTH: full`,
+    grade: {
+      files_read_post: ["references/modes-and-output.md"],
+      declared: { DEPTH: "focused" },
+      actions: "none",
+    },
+  },
+  {
+    id: "ce-code-review/depth-gate-loud-lite",
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    git_init: true,
+    git_staged: ["src/tablefmt.ts"],
+    fixture: `${FIX}/review-depth-loud-lite`,
+    post_only: true,
+    why: "A 60-line text-table formatter fails loudly in its own output. The old total-line floor at 39 forced the full spine on it; the floor now counts executable non-test lines against 200, so the consequence question runs and must answer lite.",
+    pre_contract:
+      "Any change over 39 total changed lines is size_band large and runs the full spine; the loud/silent question never runs.",
+    task: `Use the ce-code-review skill on this repo with mode:agent. Resolve the Review depth gate only. This is a read-only probe: do not create the run directory, do not start a peer job, and do not dispatch reviewers.
+
+End with exactly one line in this form and nothing else on that line:
+
+DEPTH: lite
+
+or
+
+DEPTH: focused
+
+or
+
+DEPTH: full`,
+    grade: {
+      files_read_post: ["references/modes-and-output.md"],
+      declared: { DEPTH: "lite" },
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-code-review/depth-gate-focused",
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    git_init: true,
+    git_staged: ["src/landing.ts"],
+    fixture: `${FIX}/review-depth-focused`,
+    post_only: true,
+    why: "A landing-path guard that decides whether an agent pushes to main fails silently: a wrong read of branch policy pushes when it should have opened a PR, with no error at the change site. It is not an auth, money, or public-contract boundary, so it takes the focused path (lite plus one independent adversarial read), not the full roster. Modeled on a real 2026-09-15 run that paid for the full spine on this shape.",
+    pre_contract:
+      "Any change over 39 total changed lines runs the full spine; there is no focused path.",
+    task: `Use the ce-code-review skill on this repo with mode:agent. Resolve the Review depth gate only. This is a read-only probe: do not create the run directory, do not start a peer job, and do not dispatch reviewers.
+
+End with exactly one line in this form and nothing else on that line:
+
+DEPTH: lite
+
+or
+
+DEPTH: focused
+
+or
+
+DEPTH: full`,
+    grade: {
+      files_read_post: ["references/modes-and-output.md"],
+      declared: { DEPTH: "focused" },
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-code-review/depth-gate-auth-full",
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    git_init: true,
+    git_staged: ["src/access.ts"],
+    fixture: `${FIX}/review-depth-auth-full`,
+    post_only: true,
+    why: "A workspace authorization check is a silent failure on an auth boundary. That boundary keeps the full spine even below the size floor; the agent must not stop at focused because the diff is small.",
+    pre_contract:
+      "Full spine by size band; the auth condition was not separately stated.",
+    task: `Use the ce-code-review skill on this repo with mode:agent. Resolve the Review depth gate only. This is a read-only probe: do not create the run directory, do not start a peer job, and do not dispatch reviewers.
+
+End with exactly one line in this form and nothing else on that line:
+
+DEPTH: lite
+
+or
+
+DEPTH: focused
+
+or
+
+DEPTH: full`,
+    grade: {
+      files_read_post: ["references/modes-and-output.md"],
+      declared: { DEPTH: "full" },
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-code-review/depth-gate-unlisted-language",
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    git_init: true,
+    git_staged: ["R/bucket.R"],
+    fixture: `${FIX}/review-depth-unlisted-language`,
+    post_only: true,
+    why: "A 400-line R token-bucket limiter is executable code the helper's extension list does not name: exec_nontest_lines is 0 and unclassified_lines carries the .r count. The gate must read it as code that degrades silently under load and never declare lite; the 400 total-line backstop that used to catch this was dropped in favor of that judgment.",
+    pre_contract:
+      "A 400-line change of any file type is size_band large and forces the full spine.",
+    task: `Use the ce-code-review skill on this repo with mode:agent. Resolve the Review depth gate only. This is a read-only probe: do not create the run directory, do not start a peer job, and do not dispatch reviewers.
+
+End with exactly one line in this form and nothing else on that line:
+
+DEPTH: lite
+
+or
+
+DEPTH: focused
+
+or
+
+DEPTH: full`,
+    grade: {
+      files_read_post: ["references/modes-and-output.md"],
+      must_include_any: [["DEPTH: focused", "DEPTH: full"]],
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-code-review/depth-gate-prose-only",
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    git_init: true,
+    git_staged: ["docs/runbook.md"],
+    fixture: `${FIX}/review-depth-prose-only`,
+    post_only: true,
+    why: "The control for the unlisted-language cell: a 300-line markdown runbook produces the same unclassified_lines shape under .md, and the gate must read what those lines are and declare lite rather than treating any large unclassified change as code.",
+    pre_contract:
+      "A 400-line change of any file type is size_band large and forces the full spine.",
+    task: `Use the ce-code-review skill on this repo with mode:agent. Resolve the Review depth gate only. This is a read-only probe: do not create the run directory, do not start a peer job, and do not dispatch reviewers.
+
+End with exactly one line in this form and nothing else on that line:
+
+DEPTH: lite
+
+or
+
+DEPTH: focused
+
+or
+
+DEPTH: full`,
+    grade: {
+      files_read_post: ["references/modes-and-output.md"],
+      declared: { DEPTH: "lite" },
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-code-review/cross-model-fold-in-recovery",
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    fixture: `${FIX}/review-peer-failed`,
+    post_only: true,
+    why: "The cross-model failure branches moved to cross-model-recovery.md, pointed to from the sentence that enters a failure branch. A peer that ended failed with quota evidence is that branch: the agent must open the recovery file to classify it and name what covers the adversarial lens next.",
+    pre_contract:
+      "Every fold-in branch lives in cross-model-review.md, read in full at Stage 3d.",
+    task: `Continue ce-code-review at the cross-model fold-in step in Stage 4, using the run directory at run/ in this workspace. The local reviewer batch has been collected. The peer job under run/jobs/ was started at Stage 3d; the runner's verified read exited 3 and reports the job's state as failed, and no adversarial-codex.json exists. Read the job's out.log yourself. This is a read-only probe: do not run the runner, do not start any job, do not dispatch reviewers, and do not edit anything. Resolve from the skill's references which outcome this is and what covers the adversarial lens next.
+
+End with exactly one line in this form and nothing else on that line:
+
+LENS: replacement-peer
+
+or
+
+LENS: local-adversarial
+
+or
+
+LENS: degraded`,
+    grade: {
+      files_read_post: ["references/cross-model-recovery.md"],
+      must_include_any: [["LENS: replacement-peer", "LENS: local-adversarial"]],
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-code-review/cross-model-fold-in-folded",
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    fixture: `${FIX}/review-peer-folded`,
+    post_only: true,
+    why: "The happy twin of the recovery cell: the artifact exists with independence verified, so the fold-in completes from cross-model-review.md alone and declares the lens covered by the peer.",
+    pre_contract:
+      "Every fold-in branch lives in cross-model-review.md, read in full at Stage 3d.",
+    task: `Continue ce-code-review at the cross-model fold-in step in Stage 4, using the run directory at run/ in this workspace. The local reviewer batch has been collected. The peer job was started at Stage 3d; the runner's verified read exited 0 and emitted run/adversarial-codex.json. This is a read-only probe: do not run the runner, do not start any job, do not dispatch reviewers, and do not edit anything. Resolve from the skill's references what covers the adversarial lens and whether the peer's findings may promote agreement.
+
+End with exactly two lines in this form and nothing else on those lines:
+
+LENS: folded
+PROMOTION: allowed
+
+or
+
+LENS: folded
+PROMOTION: not-allowed`,
+    grade: {
+      files_read_post: ["references/cross-model-review.md"],
+      declared: { LENS: "folded", PROMOTION: "allowed" },
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-code-review/depth-gate-lite-procedure",
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    git_init: true,
+    git_staged: [".compound-engineering/config.yaml"],
+    fixture: `${FIX}/review-depth-yaml-lite`,
+    post_only: true,
+    why: "The lite procedure moved to depth-paths.md, named inside the gate's selection sentence. After declaring lite the agent must open that file for the procedure, and nothing full-only.",
+    pre_contract:
+      "The lite procedure sits in modes-and-output.md beside the gate.",
+    task: `Use the ce-code-review skill on this repo with mode:agent. Resolve the Review depth gate, then read the procedure for the path it selected and stop before doing any of that procedure's work. This is a read-only probe: do not create the run directory, do not start a peer job, and do not dispatch reviewers.
+
+End with exactly one line in this form and nothing else on that line:
+
+DEPTH: lite
+
+or
+
+DEPTH: focused
+
+or
+
+DEPTH: full`,
+    grade: {
+      files_read_post: ["references/modes-and-output.md", "references/depth-paths.md"],
+      declared: { DEPTH: "lite" },
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
     id: "ce-code-review/report-only-default",
     skill: "ce-code-review",
     cohort: "resized",
@@ -2591,6 +3099,65 @@ Units:
       files_read_post: ["references/annotation-loop.md"],
       must_include: ["chat"],
       must_include_field: "NEXT",
+      actions: "none",
+    },
+  },
+  {
+    id: "ce-prototype/symptom-only-note-asks",
+    baseline_ref: ANNOTATION_WAIT_BASE_REF,
+    skill: "ce-prototype",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    fixture: `${FIX}/prototype-annotation-batch`,
+    why: "From a real session: a note that only reported a symptom on a full-screen canvas was read as perspective distortion and the projection was changed without asking.",
+    pre_contract:
+      "Apply only the notes that are a clear screen edit; ask when a change would be a guess.",
+    task: `The isolated web preview is already up: a rotating 3D cube drawn on a full-screen canvas. Annotation wait just returned this JSON array. Handle the batch per ce-prototype, then stop. Do not start another wait. First line of your answer: NEXT: apply  or  NEXT: chat
+
+[{"id":"a1","screen":"001-home.html","comment":"the square distorts","selector":"#world","textSnippet":"","rect":{"x":0,"y":0,"width":1280,"height":720},"point":{"x":640,"y":380,"viewportWidth":1280,"viewportHeight":720}}]`,
+    grade: {
+      files_read_post: ["references/annotation-loop.md"],
+      must_include: ["chat"],
+      must_include_field: "NEXT",
+      actions: "none",
+    },
+  },
+  {
+    id: "ce-prototype/wait-is-not-polled",
+    baseline_ref: ANNOTATION_WAIT_BASE_REF,
+    skill: "ce-prototype",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    fixture: `${FIX}/prototype-annotation-batch`,
+    why: "From a real session: the wait was backgrounded and its output checked every 60 seconds, about 30 empty tool calls per idle half hour.",
+    pre_contract:
+      "A backgrounded wait is not a completed wait: re-enter or await it, and do not end the turn while a wait is parked.",
+    task: `The isolated web preview is already up and you told the explorer how to annotate. They may take an hour before they send anything. Your shell tool ends a foreground command after 10 minutes. It can also run a command in the background, and this host starts a new turn for you on its own when a background command exits. Per ce-prototype, say how you run the annotation wait on this host, then stop; do not run anything. First line of your answer: WAIT: background-and-end-turn  or  WAIT: background-and-check-periodically  or  WAIT: foreground-only`,
+    grade: {
+      files_read_post: ["references/annotation-loop.md"],
+      must_include: ["background-and-end-turn"],
+      must_include_field: "WAIT",
+      actions: "none",
+    },
+  },
+  {
+    id: "ce-prototype/wait-blocks-without-wake-up",
+    baseline_ref: ANNOTATION_WAIT_BASE_REF,
+    skill: "ce-prototype",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    fixture: `${FIX}/prototype-annotation-batch`,
+    why: "A host with no wake-up on exit must stay blocked on the running wait for the longest block it allows, not end the turn and not check it on a short timer.",
+    pre_contract:
+      "A backgrounded wait is not a completed wait: re-enter or await it, and do not end the turn while a wait is parked.",
+    task: `The isolated web preview is already up and you told the explorer how to annotate. They may take an hour before they send anything. On this host a long command is handed back to you still running after a few seconds, and you can then block on that same running command for up to 5 minutes per call; the call returns at once if the command exits. Nothing on this host starts a new turn for you when a command exits. Per ce-prototype, say how you run the annotation wait on this host, then stop; do not run anything. First line of your answer: WAIT: end-turn-and-rely-on-wake-up  or  WAIT: check-every-minute  or  WAIT: block-five-minutes-and-repeat`,
+    grade: {
+      files_read_post: ["references/annotation-loop.md"],
+      must_include: ["block-five-minutes-and-repeat"],
+      must_include_field: "WAIT",
       actions: "none",
     },
   },

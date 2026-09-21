@@ -20,6 +20,9 @@ import {
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { createHash } from "node:crypto"
+import { isLostChildExit, throwLostChildExit } from "../../helpers/lost-child-exit"
+
+export { isLostChildExit, throwLostChildExit }
 
 
 export const SCRIPT = path.join(__dirname, "../../../skills/ce-work/scripts/unit-workspace.py")
@@ -63,6 +66,7 @@ export function sh(cwd: string, argv: string[], check = true) {
     timeout: CTL_TIMEOUT_MS,
     killSignal: "SIGKILL",
   })
+  if (isLostChildExit(r)) throwLostChildExit(argv)
   if (check && r.status !== 0) {
     const detail = r.signal ? `killed by ${r.signal}` : r.stderr
     throw new Error(`${argv.join(" ")}\n${detail}`)
@@ -102,7 +106,10 @@ function seedTemplateOnce(objectFormat: "sha1" | "sha256"): { repo: string; dige
 
 function seedTemplate(objectFormat: "sha1" | "sha256"): { repo: string; digest: string; base: string } {
   const cached = seedTemplates.get(objectFormat)
-  if (cached) return cached
+  // CI has lost this directory mid-file after a timed-out test. Reseed rather than
+  // throw ENOENT from every later makeRepo: a non-TimeoutError failure blocks the
+  // suite's TimeoutError-only re-run (scripts/run-tests.ts).
+  if (cached && existsSync(cached.repo)) return cached
   let lastError: unknown
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
@@ -164,6 +171,7 @@ export function ctlWithScriptAndEnv(script: string, runsRoot: string, extraEnv: 
       ...extraEnv,
     },
   })
+  if (isLostChildExit(r)) throwLostChildExit(["python3", script, ...args])
   const lines = r.stdout.trim().split("\n")
   let body: any = null
   if (lines.length > 1) body = JSON.parse(lines.slice(1).join("\n"))
@@ -179,7 +187,7 @@ export function ownerRootProbe(ownerRoot: string, runsRoot: string, foreignLike 
     foreignLike ? "state._EFFECTIVE_UID = os.geteuid() + 1" : "",
     "print(state.ensure_root())",
   ].filter(Boolean).join("; ")
-  return spawnSync("python3", ["-c", source, ownerRoot], {
+  const r = spawnSync("python3", ["-c", source, ownerRoot], {
     encoding: "utf8",
     timeout: CTL_TIMEOUT_MS,
     killSignal: "SIGKILL",
@@ -190,6 +198,8 @@ export function ownerRootProbe(ownerRoot: string, runsRoot: string, foreignLike 
       CE_PEER_JOBS_ROOT: "",
     },
   })
+  if (isLostChildExit(r)) throwLostChildExit(["python3", "-c", "ownerRootProbe", ownerRoot])
+  return r
 }
 
 export function init(runsRoot: string, runId: string, fixture: ReturnType<typeof makeRepo>) {

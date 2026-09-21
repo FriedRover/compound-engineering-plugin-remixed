@@ -19,7 +19,7 @@ Reviewer personas are selected in layers. The persona catalog in `references/per
 
 **Cross-cutting conditional (per diff):**
 
-- `security-reviewer` — auth, public endpoints, user input, permissions
+- `security-reviewer` — auth, public endpoints, user input, permissions (including feature-flag or entitlement gates controlling reachability)
 - `performance-reviewer` — DB queries, data transforms, caching, async
 - `api-contract-reviewer` — routes, serializers, type signatures, versioning
 - `data-migration-reviewer` — migration files / schema dumps / backfills (see the `data-migration` spawn gate in Stage 3)
@@ -33,7 +33,7 @@ Reviewer personas are selected in layers. The persona catalog in `references/per
 
 ## Review Scope
 
-A full review always spawns correctness, adds project-standards when applicable files exist, then adds only the generic, cross-cutting, stack-specific, and CE conditionals justified by the diff. `depth:full` disables the small-diff lite path; it does not invent irrelevant domains. A Rails auth feature might add security, reliability, and adversarial while still skipping agent-native and learnings when those surfaces are absent.
+A full review always spawns correctness, adds project-standards when applicable files exist, then adds only the generic, cross-cutting, stack-specific, and CE conditionals justified by the diff. This file runs only on the full spine; it does not invent irrelevant domains. A Rails auth feature might add security, reliability, and adversarial while still skipping agent-native and learnings when those surfaces are absent.
 
 ## Language-Aware Conditionals
 
@@ -62,62 +62,28 @@ Stack-specific personas are additive when runtime behavior warrants them. A Hotw
 
 For `deployment-verification-agent`, use the same migration-artifact condition when the change is risky (destructive DDL, backfills, NOT NULL without default, column renames/drops).
 
-### Stage 3b: Discover project standards paths
+### Stage 3b: Decide the project-standards dispatch
 
-**Goal:** the mapping that pairs each criteria file governing this change with the changed files it governs, for the `project-standards` persona. Paths, not contents.
+Stage 1c already paired each criteria file governing this change with the changed files it governs. Decide from that mapping whether the `project-standards` persona runs. When the instruction-file fallback supplied the criteria for any changed file, name it as the fallback in Coverage. **When uncertain, run the persona rather than skip it** — an error is never an empty result:
 
-Enumerate the candidates from **the tree under review**, never from whichever tree happens to be checked out: the workspace only in `local-aligned` scope, and the reviewed head ref in `pr-remote` and `branch-remote` (Stage 1 resolved which). A criteria file that exists only in the reviewed tree must appear, and one deleted there must not, or the persona enforces criteria the change never had.
-
-Candidates are `CODING_STANDARDS.md`, `CLAUDE.md`, and `AGENTS.md` at any depth. Keep those whose directory is an ancestor of a changed file — a root-level file governs the whole checkout, `skills/AGENTS.md` only what is under `skills/`.
-
-`CODING_STANDARDS.md` is the designated criteria source, so an instruction file supplies criteria only for changed files that no `CODING_STANDARDS.md` governs, and no file is graded against both kinds. Every governing `CODING_STANDARDS.md` still applies together. Declared Compound Packs are not a criteria kind here: they select `learnings-researcher` in Stage 3 and are graded by it independently, so a line that violates a standards rule and a pack rule yields one finding per source. When the instruction-file fallback supplied the criteria for any changed file, name it as the fallback in Coverage.
-
-**Done** when no changed file could be graded against two kinds of criteria. A changed file that no criteria file governs is a complete result, not a gap. **When uncertain, run the persona rather than skip it** — an error is never an empty result:
-
-- One or more applicable paths: select `project-standards` and pass the mapping inside a `<standards-paths>` block in its Stage 4 context. The persona applies the precedence you resolved rather than re-deriving it, and reads the files itself, targeting only relevant sections.
+- One or more applicable paths: select `project-standards` and pass the mapping inside a `<standards-paths>` block in its Stage 4 context. The persona applies the precedence Stage 1c resolved rather than re-deriving it, and reads the files itself, targeting only relevant sections.
 - Empty successful search: do not dispatch `project-standards`; record `project standards: not run (no applicable standards files)` in Coverage.
 - Search failure or uncertain scope: dispatch `project-standards` with the uncertainty stated.
 
-### Stage 3c: Small-diff fast path (reduce the roster for trivial, low-risk diffs)
+### Stage 3c: Depth already decided
 
-**`depth:full` turns this check off** — when that token was passed, skip Stage 3c entirely and run the full roster (the caller explicitly asked for a deep review; size no longer matters).
-
-**This check errs toward the full roster: it shrinks the roster only when the diff is a positive count of low-risk application code lines, and any uncertainty means the full roster runs.** Shrink to the lite roster (defined below) only when **all** of these hold:
-
-- Stage 1b returned `lite_eligible: true` (1-39 executable changed lines, zero uncounted files, and no path signals), AND
-- No content-based risk read from the diff in Stage 3 (auth, payments, data mutation, external API, secrets/permissions, deserialization, crypto, concurrency/background jobs, filesystem/process execution), AND
-- Stage 3b standards discovery completed successfully (with applicable paths or a confirmed empty result), AND
-- No conditional persona was selected in Stage 3 from the diff's own content. Personas the repo's criteria sources select regardless of diff size — `project-standards` from Stage 3b paths, `learnings-researcher` from declared Compound Packs — ride the lite roster rather than disqualifying it: a pack rule is enforced on a three-line diff exactly as on a large one.
-
-`exec_lines: null`, `uncounted_files > 0`, a non-empty `signals` array, or helper failure are hard disqualifiers. A pure code diff that also touches one `.md` runs the full roster; that conservatism is the point.
-
-**Lite roster:** the inline fast pass (Stage 4) plus `correctness-reviewer`, `project-standards-reviewer` only when Stage 3b found applicable paths, and `learnings-researcher` only when declared packs selected it. Announce the actual roster plainly and note it in Coverage.
-
-**Do not shrink the roster** when any condition above fails — the check keys on risk, not size alone (a 12-line auth change still needs the full roster). When in doubt, run the full roster.
+The Review depth gate in `references/modes-and-output.md` already chose lite, focused, or full, before this file was read. This stage does not size the run and does not shrink the roster. You are on the full spine. Continue to Stage 3d.
 
 ### Stage 3d: Bind the adversarial route and final roster
 
 Complete this stage **before reading persona prompt assets, `references/dispatch-reviewers.md`, or entering Stage 4** (Dispatch reviewers). That reference's persona-file instructions are valid only once you have settled which single route covers the adversarial lens: the peer, or the in-process fallback. This stage makes that exclusive choice between a cross-model adversarial peer and the in-process `adversarial-reviewer`. Later stages use that choice and must not decide it again, except when the fold-in step finds the peer never ran, or restores the in-process reviewer after a retry on the same route fails on a rate limit.
 
-Generate the review run ID now so both routes share one artifact directory:
+Both routes share the run directory Stage 1b created; do not create another.
 
-```bash
-SCRATCH_ROOT="/tmp/compound-engineering-$(id -u)";
-[ ! -L "$SCRATCH_ROOT" ] && (umask 077; mkdir -p "$SCRATCH_ROOT") 2>/dev/null && [ ! -L "$SCRATCH_ROOT" ] && [ -O "$SCRATCH_ROOT" ] && [ -w "$SCRATCH_ROOT" ] || SCRATCH_ROOT="${TMPDIR:-/tmp}/compound-engineering-$(id -u)";
-if [ -L "$SCRATCH_ROOT" ]; then echo "unsafe scratch root symlink: $SCRATCH_ROOT" >&2; exit 1; fi;
-(umask 077; mkdir -p "$SCRATCH_ROOT") || exit 1;
-if [ -L "$SCRATCH_ROOT" ] || [ ! -O "$SCRATCH_ROOT" ]; then echo "scratch root is not owned by the current user: $SCRATCH_ROOT" >&2; exit 1; fi;
-chmod 700 "$SCRATCH_ROOT" || exit 1;
-RUN_ID=$(date +%Y%m%d-%H%M%S)-$(head -c4 /dev/urandom | od -An -tx1 | tr -d ' ');
-RUN_DIR="$SCRATCH_ROOT/ce-code-review/$RUN_ID";
-(umask 077; mkdir -p "$RUN_DIR") || exit 1; chmod 700 "$RUN_DIR" || exit 1;
-echo "$RUN_DIR";
-```
+When adversarial was selected and the working tree is the reviewed head (standalone, `base:`, or `local-aligned` scope), read `references/cross-model-review.md` from this skill's directory in full, verify the host as that reference requires, resolve one fixed route and approve it, and make the announcement that reference requires before anything is sent to the peer (its egress announcement, which tells the user what leaves the machine). Before start, write both inputs the reference defines; you, the orchestrator, write them, not the peer. They are the dedicated host-vetted constraints file, and the separate untrusted semantic brief containing intent plus material risk divisions inferred from the current file inventory and diff. Do not embed the diff, mechanically copy every path, or combine the two files. Then start the detached peer job using the reference's exact invocation and persist its job ID, target, requested model/reasoning, and start epoch in working state, recording `--start peer` in the stage log (`references/scope.md`) in that same shell call.
 
-When adversarial was selected and scope is `local-aligned` or standalone, read `references/cross-model-review.md` from this skill's directory in full, verify the host as that reference requires, resolve one fixed route and approve it, and make the announcement that reference requires before anything is sent to the peer (its egress announcement, which tells the user what leaves the machine). Before start, write both inputs the reference defines; you, the orchestrator, write them, not the peer. They are the dedicated host-vetted constraints file, and the separate untrusted semantic brief containing intent plus material risk divisions inferred from the current file inventory and diff. Do not embed the diff, mechanically copy every path, or combine the two files. Then start the detached peer job using the reference's exact invocation and persist its job ID, target, requested model/reasoning, and start epoch in working state.
-
-- If the runner returns a job ID, the peer covers the adversarial lens for this run. Remove `adversarial-reviewer` from the local roster immediately. Do not read its local persona asset or dispatch it later — except when the owning fold-in rules in `references/cross-model-review.md` require the did-not-run fallback or the in-process restore after a failed same-route rate-limit retry.
-- If no job starts because of a dispatch-infrastructure failure (a non-zero exit before any job id, an unresolved `$SKILL_DIR`/script path), first attempt the bounded same-route hand recovery from `references/cross-model-review.md` before accepting the fallback. Re-run the identical resolved route, holding target/model and read scope fixed. Keep retrying only while each failure is a new, plausibly recoverable one and the shared peer deadline holds. If recovery returns a job id, treat it as the branch above (the peer covers the lens; remove `adversarial-reviewer`). Keep `adversarial-reviewer` in the local roster as the fallback, and record the peer skip reason for Coverage, only in two cases: recovery is exhausted (a failure repeats or the deadline is spent), or the peer was never eligible to start (selection condition not met, disabled by checkout config, host un-attestable, no different provider, or CLI missing).
+- If the runner returns a job ID, the peer covers the adversarial lens for this run. Remove `adversarial-reviewer` from the local roster immediately. Do not read its local persona asset or dispatch it later — except when the owning fold-in rules in `references/cross-model-recovery.md` require the did-not-run fallback or the in-process restore after a failed same-route rate-limit retry.
+- If no job starts because of a dispatch-infrastructure failure (a non-zero exit before any job id, an unresolved `$SKILL_DIR`/script path), read `references/cross-model-recovery.md` at that point and first attempt its bounded same-route hand recovery before accepting the fallback. Re-run the identical resolved route, holding target/model and read scope fixed. Keep retrying only while each failure is a new, plausibly recoverable one and the shared peer deadline holds. If recovery returns a job id, treat it as the branch above (the peer covers the lens; remove `adversarial-reviewer`). Keep `adversarial-reviewer` in the local roster as the fallback, and record the peer skip reason for Coverage, only in two cases: recovery is exhausted (a failure repeats or the deadline is spent), or the peer was never eligible to start (selection condition not met, disabled by checkout config, host un-attestable, no different provider, or CLI missing).
 - In `pr-remote` / `branch-remote`, do not start the peer; keep the selected in-process adversarial reviewer because it can inspect the reviewed refs.
 
 When a job ID is returned and task tracking is active, add a distinct task that names the independent cross-model adversarial review. Keep it in progress while the detached job runs, then record its terminal outcome when the artifact is collected. Never create this task before a peer starts or leave it behind when the local adversarial fallback runs.

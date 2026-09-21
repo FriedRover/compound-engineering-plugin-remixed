@@ -490,16 +490,35 @@ printf '%s' '{"structured_output":{"reviewer":"adversarial","findings":[],"resid
     expect(emitAdapter("composer")).toContain("composer-2.5-fast")
   })
 
-  test("opencode run is --dir --format json without --auto", () => {
-    const cmd = emitAdapter("opencode")
+  test.each([
+    { label: "default", overrides: {} },
+    { label: "model", overrides: {
+      CROSS_MODEL_MODEL_OVERRIDE_TARGET: "opencode",
+      CROSS_MODEL_MODEL_OVERRIDE: "openrouter/anthropic/test-model",
+    } },
+    { label: "model and effort", overrides: {
+      CROSS_MODEL_MODEL_OVERRIDE_TARGET: "opencode",
+      CROSS_MODEL_MODEL_OVERRIDE: "openrouter/anthropic/test-model",
+      CROSS_MODEL_EFFORT_OVERRIDE: "high",
+    } },
+  ])("opencode keeps the prompt outside variadic --file ($label)", ({ overrides }) => {
+    const env = overrides as Record<string, string>
+    const cmd = emitAdapter("opencode", SCRIPT, env)
     expect(cmd).toContain("opencode run")
     expect(cmd).toContain('OPENCODE_CONFIG_CONTENT={"permission":{"edit":"deny","bash":"deny","webfetch":"deny","task":"deny"}}')
     expect(cmd).toContain("OPENCODE_DISABLE_PROJECT_CONFIG=1")
     expect(cmd).toContain("--dir <repo-root>")
     expect(cmd).toContain("--format json")
     expect(cmd).toContain("--file <prompt-file>")
+    const prompt = "Follow the attached brief. Return only schema-shaped JSON."
+    expect(cmd).toContain(prompt)
+    // OpenCode's --file consumes following bare arguments as more attachments.
+    expect(cmd.indexOf(prompt)).toBeLessThan(cmd.indexOf("--file <prompt-file>"))
+    if (env.CROSS_MODEL_MODEL_OVERRIDE) expect(cmd).toContain(`--model ${env.CROSS_MODEL_MODEL_OVERRIDE}`)
+    else expect(cmd).not.toContain("--model")
+    if (env.CROSS_MODEL_EFFORT_OVERRIDE) expect(cmd).toContain(`--variant ${env.CROSS_MODEL_EFFORT_OVERRIDE}`)
+    else expect(cmd).not.toContain("--variant")
     expect(cmd).not.toContain("--auto")
-    expect(cmd).not.toContain("--model")
   })
 
   test("stream-json NDJSON result event yields findings and model receipt", () => {
@@ -1931,6 +1950,10 @@ describe("cross-model provider kernel parity (code-review vs doc-review)", () =>
       expect(emitAdapter("claude", script, { CROSS_MODEL_EFFORT_OVERRIDE: "xhigh" })).not.toContain("--effort high")
       expect(emitAdapter("codex", script, { CROSS_MODEL_EFFORT_OVERRIDE: "medium" })).toContain('model_reasoning_effort="medium"')
       expect(emitAdapter("grok-cli", script, { CROSS_MODEL_EFFORT_OVERRIDE: "medium" })).toContain("--effort medium")
+      // Levels the installed CLIs accept: codex lists max (and ultra on some models); grok accepts xhigh.
+      expect(emitAdapter("codex", script, { CROSS_MODEL_EFFORT_OVERRIDE: "max" })).toContain('model_reasoning_effort="max"')
+      expect(emitAdapter("codex", script, { CROSS_MODEL_EFFORT_OVERRIDE: "ultra" })).toContain('model_reasoning_effort="ultra"')
+      expect(emitAdapter("grok-cli", script, { CROSS_MODEL_EFFORT_OVERRIDE: "xhigh" })).toContain("--effort xhigh")
       // unset -> editorial defaults unchanged
       expect(emitAdapter("claude", script)).toContain("--effort high")
       expect(emitAdapter("codex", script)).toContain('model_reasoning_effort="xhigh"')
@@ -1940,8 +1963,8 @@ describe("cross-model provider kernel parity (code-review vs doc-review)", () =>
   test("an effort override the route cannot honor fails closed in both skills", () => {
     const cases: Array<[string, string]> = [
       ["claude", "minimal"],       // not a claude CLI level
-      ["codex", "max"],            // not a codex reasoning level
-      ["grok-cli", "xhigh"],       // not a grok level
+      ["codex", "minimal"],        // the API rejects it on every current codex model
+      ["grok-cli", "max"],         // not a grok level
       ["grok-cursor", "high"],     // cursor-agent routes imply effort in the model id
       ["composer", "high"],
       ["cursor", "high"],

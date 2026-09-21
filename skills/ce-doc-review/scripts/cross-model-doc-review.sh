@@ -286,8 +286,8 @@ adapter_argv() {
     opencode)
       printf '%s\0' env 'OPENCODE_DISABLE_PROJECT_CONFIG=1' \
         'OPENCODE_CONFIG_CONTENT={"permission":{"edit":"deny","bash":"deny","webfetch":"deny","task":"deny"}}' \
-        opencode run --dir "$PEER_WORKDIR" --format json --file "$PROMPT_FILE"
-      printf '%s\0' "Follow the attached brief. Return only schema-shaped JSON."
+        opencode run --dir "$PEER_WORKDIR" --format json \
+        "Follow the attached brief. Return only schema-shaped JSON." --file "$PROMPT_FILE"
       _oc_model="$(route_model opencode)"
       [ "$_oc_model" = "auto" ] || [ -z "$_oc_model" ] || printf '%s\0' --model "$_oc_model"
       _oc_effort="$(route_effort opencode)"
@@ -319,8 +319,11 @@ validate_model_override() {
 }
 
 # Accept an effort override only where the route exposes an effort flag and the
-# value is one that CLI documents (claude: low|medium|high|xhigh|max; codex
-# model_reasoning_effort: minimal|low|medium|high|xhigh; grok: low|medium|high).
+# value is one that CLI accepts (claude: low|medium|high|xhigh|max; codex
+# model_reasoning_effort: low|medium|high|xhigh|max|ultra; grok: low|medium|high|xhigh).
+# Checked 2026-09-19 against claude and grok CLI help and codex 0.155.0's model
+# list. Codex levels vary per model, so a listed level can still fail after
+# launch on a model that lacks it.
 # cursor-agent routes imply effort in the model id, so any override there is
 # invalid for the route rather than silently dropped. Empty means "no override".
 validate_effort_override() {
@@ -328,8 +331,8 @@ validate_effort_override() {
   [ -n "$effort" ] || return 0
   case "$route:$effort" in
     claude:low|claude:medium|claude:high|claude:xhigh|claude:max) ;;
-    codex:minimal|codex:low|codex:medium|codex:high|codex:xhigh) ;;
-    grok-cli:low|grok-cli:medium|grok-cli:high) ;;
+    codex:low|codex:medium|codex:high|codex:xhigh|codex:max|codex:ultra) ;;
+    grok-cli:low|grok-cli:medium|grok-cli:high|grok-cli:xhigh) ;;
     opencode:none|opencode:minimal|opencode:low|opencode:medium|opencode:high|opencode:xhigh|opencode:max|opencode:default) ;;
     *) return 1 ;;
   esac

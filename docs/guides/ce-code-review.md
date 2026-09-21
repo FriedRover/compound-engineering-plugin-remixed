@@ -18,7 +18,7 @@ Collected review agents and validators are released before the next batch or han
 
 ---
 
-If the repo declares [Compound Packs](./packs.md) in its `packs` config, the institutional-learnings pass also searches the resolved pack roots, and a diff that violates a matching pack rule is flagged with a `(pack: <id>, <path within the pack>)` citation.
+If the repo declares [Compound Packs](./packs.md) in its `packs` config, the institutional-learnings pass also searches the resolved pack roots, and a diff that violates a matching pack rule is flagged with a `(pack: <id>, <path within the pack>)` citation. That pass runs on the full spine; a diff the depth gate sends down the lite or focused path gets its repo-owned criteria checked in context, and its receipt says packs were not applied.
 
 ## TL;DR
 
@@ -59,7 +59,7 @@ If the repo declares [Compound Packs](./packs.md) in its `packs` config, the ins
 /ce-code-review apply:local
 /ce-code-review review this branch and fix eligible findings locally
 
-# Force the full reviewer roster (skip the small-diff lite path)
+# Force the full reviewer roster (skip the lite and focused paths)
 /ce-code-review depth:full
 
 # Flat report, no thematic groups
@@ -96,7 +96,9 @@ Selection is agent judgment, not keyword matching. Instruction-prose files (Mark
 
 When you pass a PR number or URL, trivial automated PRs (lockfile bumps, chore version increments) are skipped. Draft PRs are reviewed normally.
 
-`depth:auto` (the default) collapses a 1-39-line, low-risk, code-only diff to a lite roster. `depth:full` disables that path so the full always-on roster runs regardless of size. Neither token invents irrelevant domains.
+Every run also leaves a stage log and a `cost` block in its run directory's `metadata.json`: elapsed time per stage, reviewer and candidate counts, artifact bytes, the helper's line facts and chosen depth, and token counts where the harness exposed them, with a `status` that says whether the run completed. That is the data the size floors are tuned from; a partial run is labeled as one.
+
+`depth:auto` (the default) lets the skill self-size by consequence, not by line count. A change whose wrong version would fail loudly where it is made takes a cheap lite path in the review context. A change that could fail silently somewhere else takes a focused path: the same in-context review plus one independent adversarial read, normally the cross-model peer from a different model family, or a single local adversarial reviewer when the peer cannot run or the reviewed tree is not the local checkout, merged without the multi-agent finish. The full spine runs for migrations, files the scope helper cannot count, executable non-test changes of 200 lines or more, `apply:local`, and silent failures on an auth, money, or public-contract boundary. A CI workflow change can never take lite: it gets at least the focused path's adversarial read, and only the full spine's standards, testing, and security personas when its consequence is one of those boundaries, such as a workflow that handles credentials or permissions. Lite and focused still check the change against the repo-owned criteria files below, in context; lite dispatches no reviewer agent at all. Declared Compound Packs are applied only on the full spine. `depth:full` disables both cheaper paths. Neither token invents irrelevant domains. Callers do not need to classify.
 
 ## Repo-owned review criteria
 
@@ -201,7 +203,7 @@ Use `ce-code-review` when:
 Skip it when:
 
 - You want a light review. Ask for "quick review" and the short-circuit defers to the harness-native `/review`
-- The change is a typo, formatting, or a small dependency bump. The lite roster is enough
+- The change is a typo, formatting, or a small dependency bump. The skill's lite path is enough, and it is chosen automatically
 - You want findings on a planning document → `/ce-doc-review`
 - You want a holistic take on a plan, not a diff review → `/ce-pov`
 - You want to investigate broken behavior → `/ce-debug`
@@ -212,7 +214,7 @@ Skip it when:
 
 `ce-code-review` is the portable review path other skills call:
 
-- **`/ce-work`** invokes `mode:agent` before shipping. It self-right-sizes (lite roster for small low-risk code-only diffs, full roster otherwise). Pass `depth:full` when the plan, the task, or the user asked for a thorough review. `ce-work` then applies findings and runs its Residual Work Gate
+- **`/ce-work`** invokes `mode:agent` before shipping. `ce-code-review` self-sizes. Pass `depth:full` when the plan, the task, or the user asked for a thorough review. `ce-work` then applies findings and runs its Residual Work Gate
 - **`/ce-optimize`** runs it against the cumulative optimization-branch diff before merging
 - **`/ce-debug`** runs it on a non-trivial fix, scoped so it does not wander into unrelated branch work
 
@@ -240,7 +242,7 @@ Bare and `mode:agent` reviews are report-only and safe alongside browser tests o
 | `plan:<path>` | Loads the plan for requirements verification |
 | `mode:agent` | JSON machine handoff. Report-only. `mode:headless` is a deprecated alias. `mode:non-interactive` is not valid here. `mode:report-only` is ignored |
 | `apply:local` | Authorize verified local fixes. Conflicts with `mode:agent` |
-| `depth:full` / `depth:auto` | `full` forces the full roster (skips the small-diff lite path). `auto` (default) self-right-sizes |
+| `depth:full` / `depth:auto` | `full` forces the full spine. `auto` (default) self-sizes to lite, focused, or full; callers do not classify |
 | `grouping:auto` / `grouping:off` / `grouping:always` | Thematic triage grouping (default `auto`). Presentation only. Never changes reviewer selection, merge, or apply |
 
 Conflicting mode flags (or conflicting grouping flags) stop with an error. Combining `base:` with a PR or branch target also errors. Pass one or the other.

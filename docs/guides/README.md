@@ -65,7 +65,7 @@ Invoked when a specific need arises, not part of any chain.
 
 | Skill | Description |
 |-------|-------------|
-| [`/ce-bakeoff`](./ce-bakeoff.md) | Independently develop and select competing approaches to improve brainstorming and planning decisions. Explicitly requested from those workflows, or used standalone. |
+| [`/ce-bakeoff`](./ce-bakeoff.md) | Independently develop and select competing approaches to improve brainstorming and planning decisions. Planning runs it on its own when a costly technical choice stays open; brainstorming only on request; also usable standalone. |
 | [`/ce-pov`](./ce-pov.md) | A project-grounded judgment on adoption, documents, or supplied approaches, with an oracle panel for independent model opinions. |
 | [`/ce-explain`](./ce-explain.md) | An evidence-backed explanation of how something works and why, delivered for learning or further work; standalone teaching artifacts when useful. |
 | [`/ce-prototype`](./ce-prototype.md) | Build a throwaway prototype so someone can experience how the product should work, feel, or read, then write those decisions into an existing plan or continue into brainstorm or plan |
@@ -126,6 +126,7 @@ Invoked when a specific need arises, not part of any chain.
 | Skill | Description |
 |-------|-------------|
 | [`/ce-noslop`](./ce-noslop.md) | Rewrite, check, or draft prose with no AI tells that reads on the first read; every fact preserved. Sibling skills invoke it where they write. |
+| [`/wtf`](./wtf.md) | Explain the last message, or a supplied file, link, or passage, in plain language. Explains rather than rewrites; keeps caveats and adds no claims. Manual invoke only. |
 | [`/ce-promote`](./ce-promote.md) | Draft announcement copy for a shipped feature (X, changelog, LinkedIn, email, blog, demo). Drafts only; never posts. |
 | [`/ce-resolve-pr-feedback`](./ce-resolve-pr-feedback.md) | One pass to evaluate, fix, and reply to PR review comments, including nitpicks. Babysit is the watch that calls this. |
 | [`/ce-dogfood`](./ce-dogfood.md) | Hands-off browser QA of the branch: map flows, fix small breakages, write a report. Manual invoke only. |
