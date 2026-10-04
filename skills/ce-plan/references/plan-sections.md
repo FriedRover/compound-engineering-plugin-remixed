@@ -144,7 +144,9 @@ present. They carry the contracts downstream consumers depend on.
   sequencing, and research that shapes how the Product Contract will be built.
 - **Implementation Units** (with stable U-IDs) — discrete work packets sized so
   each is independently executable. Each unit names Goal, Requirements,
-  Files, Approach, Test Scenarios, and Verification. `ce-work` and goal-mode
+  Files, Approach, Test Scenarios, and Verification, plus the optional Model
+  field (see `references/structure.md` 3.5) when a unit calls for a
+  non-default model tier on native dispatch. `ce-work` and goal-mode
   executors consume these units.
   - **Unit Index (large plans only, ~10+ units).** When the plan has roughly
     ten or more units, open the section with a compact navigation table — one

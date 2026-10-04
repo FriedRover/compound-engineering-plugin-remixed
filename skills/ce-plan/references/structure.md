@@ -93,6 +93,15 @@ For each unit, include:
 - **Files** - repo-relative file paths to create, modify, or test (never absolute paths)
 - **Approach** - key decisions, data flow, component boundaries, or integration notes. **Unit-local content only:** cite the governing R-IDs / KTD-IDs for any product or protocol rule rather than restating it. When the content enumerates sequenced steps or per-file changes, write it as a short ordered list under the field label, one step per item — a sentence chaining more than two semicolons is a list wearing a paragraph
 - **Execution note** - optional natural-language direction, only when the unit benefits from non-default sequencing or proof. Do not treat this as an enum; phrase the evidence the implementer should seek.
+- **Model** - optional model alias for `ce-work` to request when dispatching this unit's native subagent, written as `Model: <alias> -- <one-clause rationale>`. Accepted aliases: `haiku`, `sonnet`, `opus`, `fable`.
+  - `haiku` — mechanical, low-judgment work: boilerplate, renames, config/data scaffolding, repetitive multi-file edits with no design decisions
+  - `sonnet` — the baseline implementation tier: ordinary feature work with clear requirements — typical CRUD/API/UI/service logic, standard test-writing, moderate multi-file coordination that never rises to heavy interdependency or correctness-critical reasoning. Most units in most plans belong here.
+  - `opus` — heavy interdependencies, non-obvious architecture, or correctness-critical logic: concurrency, migrations, security boundaries, algorithms with subtle edge cases, or a unit whose approach touches many other units' contracts
+  - `fable` — the unit's output is primarily prose, narrative, or other creative generation rather than code
+
+  **All-or-nothing per plan.** If any unit carries a `Model:` field, every unit in the plan carries one — including explicit `Model: sonnet -- <reason>` on baseline units. Never mix annotated and silently-defaulted units: an absent field must never leave the reader guessing whether that was "sonnet on purpose" or "not yet triaged." Omit the field from every unit only when the whole plan is uniform enough that no unit warrants a non-default tier.
+
+  This is a per-unit capability request for native dispatch, not the reasoning-elevation or cross-model routing contracts (`references/reasoning-elevation.md`, `ce-work`'s `references/cross-model-execution.md`) — those govern a different call and stay unaffected by this field.
 - **Technical design** - optional pseudo-code or diagram when the unit's approach is non-obvious and prose alone would leave it ambiguous. Frame explicitly as directional guidance, not implementation specification
 - **Patterns to follow** - existing code or conventions to mirror
 - **Test scenarios** - enumerate the specific test cases the implementer should write, one scenario per list item (never a semicolon-chained paragraph), right-sized to the unit's complexity and risk. Consider each category below and include scenarios from every category that applies to this unit. A simple config change may need one scenario; a payment flow may need a dozen. The quality signal is specificity — each scenario should name the input, action, and expected outcome so the implementer doesn't have to invent coverage. For units with no behavioral change (pure config, scaffolding, styling), use `Test expectation: none -- [reason]` instead of leaving the field blank. **AE-link convention:** when a test scenario directly enforces an origin Acceptance Example, prefix it with `Covers AE<N>.` (or `Covers F<N> / AE<N>.`). This is sparse-by-design — most test scenarios are finer-grained than AEs and do not link. Do not force AE links onto tests that only cover lower-level implementation details.
@@ -111,6 +120,34 @@ Use `Execution note` sparingly. Good uses include:
 - `Execution note: This is mostly packaging/config; prefer install/runtime smoke verification over unit coverage.`
 
 Do not expand units into literal `RED/GREEN/REFACTOR` substeps.
+
+Apply `Model` per the all-or-nothing rule above rather than annotating ad hoc. Good uses include:
+- `Model: opus -- advanced coding with interdependencies across the auth and billing modules`
+- `Model: sonnet -- standard CRUD endpoint, no special tier needed`
+- `Model: haiku -- mechanical rename across ~30 call sites, no design decisions`
+- `Model: fable -- this unit only drafts onboarding copy, no code`
+
+#### 3.5b Optional: TypeSafe/Jev Opportunity Check
+
+While drafting each unit's Approach and any Key Technical Decisions, watch
+for three shapes in the plan's own subject matter (the system being
+planned — never `ce-plan`/`ce-work` itself): fragile classification/routing
+against a fixed or fuzzy vocabulary (hand-maintained alias tables, regex
+matching, or parsing a full LLM's freeform output back into an enum);
+verify-then-trust parsing or extraction with no real validation step; or a
+confidence-gated auto-act decision implemented as a fixed heuristic instead
+of a calibrated threshold. The moment any of the three appears, read
+`references/jev-integration.md` before finalizing that unit's Approach — it
+defines the shapes precisely, names the matching TypeSafe/Jev primitive, and
+shows how to phrase the resulting Key Technical Decision.
+
+**This is always optional and never a default.** Most plans will not trigger
+this check at all, and that is the ordinary, unremarkable outcome — do not
+force a Jev mention into a plan whose subject matter doesn't call for it.
+When it does apply, surface it as a clearly labeled optional KTD or Approach
+note (see the guide for the exact phrasing convention) and let the user
+accept or defer it like any other decision; never adopt it silently or treat
+it as load-bearing for the unit's core path unless the user opts in.
 
 #### 3.6 Keep Planning-Time and Implementation-Time Unknowns Separate
 
