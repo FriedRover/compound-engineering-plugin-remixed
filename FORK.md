@@ -7,9 +7,10 @@ This repo is [jmatthewhouse](https://github.com/FriedRover)'s fork of
 **`compound-engineering-plugin-remixed`** — both the GitHub repo and the
 Claude Code marketplace name declared inside it — so it's never mistaken
 for, and never collides with, a stock upstream install under the shared
-plugin name `compound-engineering-plugin`. It carries two custom features
-on top of upstream: **per-unit model selection** and an **optional
-TypeSafe/Jev integration**. Everything else — all 36 skills, docs, install
+plugin name `compound-engineering-plugin`. It carries three custom features
+on top of upstream: **per-unit model selection**, an **optional
+TypeSafe/Jev integration**, and an **optional writing-standards hook in
+`ce-noslop`**. Everything else — all 36 skills, docs, install
 paths for other hosts — is unmodified upstream content. See the
 [README](README.md) for what Compound Engineering itself does.
 
@@ -176,6 +177,29 @@ Neither hook interacts with the per-unit-model-selection customization
 above beyond reading its `Model:` field to decide gate scope, and neither
 touches the existing reasoning-elevation or cross-model-execution
 contracts.
+
+### 3. Optional writing-standards hook in `ce-noslop`
+
+`ce-noslop` is the one skill that `ce-plan`, `ce-brainstorm`, the PR and
+review writers, and the report skills all write through. The fork adds one
+pointer in its Register section to `skills/ce-noslop/references/house-style.md`.
+That file sends agent-facing text to `core.md` and `voice/technical.md` in
+the separate `writing-standards` repo, and does nothing when that repo is
+absent.
+
+**Where it lives:**
+- `skills/ce-noslop/SKILL.md` — one sentence at the end of the Register
+  intro. The kernel is near its 4096-byte limit, so the logic stays in the
+  reference file.
+- `skills/ce-noslop/references/house-style.md` — the path, the existence
+  check and fallback, what changes, and what stays.
+- `tests/skills/ce-noslop-contract.test.ts` — guards the pointer, the path,
+  the `INSTALL:` comment, and the fallback line.
+
+**Dependency:** soft. The path is hardcoded to `~/Projects/writing-standards`.
+The installation agent must set it to the real clone location on each
+machine; the `INSTALL:` comment in `house-style.md` says so. With the repo
+missing, `ce-noslop` behaves as upstream.
 
 ## Keeping this fork in sync with upstream
 

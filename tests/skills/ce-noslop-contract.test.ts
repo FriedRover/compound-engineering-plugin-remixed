@@ -84,6 +84,24 @@ describe("ce-noslop kernel", () => {
   })
 })
 
+// Fork customization: the kernel points at house-style.md, which hands agent-facing
+// text to the writing-standards repo when it is installed and falls back otherwise.
+describe("ce-noslop house-style hook", () => {
+  const SKILL = "skills/ce-noslop/SKILL.md"
+  const HOUSE_STYLE = "skills/ce-noslop/references/house-style.md"
+
+  test("SKILL.md points at house-style.md", () => {
+    expect(readRepoFile(SKILL)).toContain("references/house-style.md")
+  })
+
+  test("house-style.md names the install path and the fallback", () => {
+    const body = readRepoFile(HOUSE_STYLE)
+    expect(body).toContain("~/Projects/writing-standards")
+    expect(body).toContain("INSTALL:")
+    expect(body).toContain("use the Register in `SKILL.md` as written")
+  })
+})
+
 describe("ce-noslop distribution", () => {
   for (const rel of CONSOLIDATION_SET) {
     test(`${rel} invokes ce-noslop at its composition point`, () => {

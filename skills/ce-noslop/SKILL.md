@@ -24,7 +24,7 @@ For edit and detect, and for an author passage the tests alone do not settle, re
 
 ## Register
 
-Pick by who reads the result. The caller's own interaction contract wins over any line here.
+Pick by who reads the result. The caller's own interaction contract wins over any line here. Read `references/house-style.md` first.
 
 - **Agent talking to the user.** The reader is a teammate who knows the domain and did not watch the work. Write each sentence as you would say it to them.
 - **Repo or team artifact.** Neutral. Match the surrounding document's idiom. No first person, no opinion the artifact does not need. This is the default when no reader is named.
