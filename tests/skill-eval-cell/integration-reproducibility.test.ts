@@ -19,7 +19,7 @@ function make(root: string) {
   const dir = path.join(repo, "tests", "skill-eval-cell")
   const bin = path.join(root, "bin")
   fs.mkdirSync(dir, { recursive: true }); fs.mkdirSync(bin)
-  for (const name of ["run.ts", "pack.ts", "regrade.ts", "provenance.ts", "grade.ts", "hosts.ts", "extract.ts", "cli.ts", "path-shim.ts"]) {
+  for (const name of ["run.ts", "pack.ts", "regrade.ts", "provenance.ts", "grade.ts", "hosts.ts", "extract.ts", "cli.ts", "path-shim.ts", "converse.ts"]) {
     fs.copyFileSync(path.join(import.meta.dir, name), path.join(dir, name))
   }
   fs.mkdirSync(path.join(repo, "skills", "fixture"), { recursive: true })
@@ -43,7 +43,8 @@ if [ "$CE_FAKE_MODE" = "nonzero" ]; then echo 'failure' >&2; exit 7; fi
 printf 'proof\\nFILES_READ: SKILL.md\\nACTIONS: none\\nDELEGATES_DISPATCHED: none\\n'
 `, { mode: 0o755 })
   const executable = process.execPath
-  const env = { ...process.env, PATH: `${bin}${path.delimiter}${path.dirname(executable)}${path.delimiter}${process.env.PATH ?? ""}` }
+  const home = path.join(root, "home")
+  const env = { ...process.env, HOME: home, CODEX_HOME: path.join(home, ".codex"), PATH: `${bin}${path.delimiter}${path.dirname(executable)}${path.delimiter}${process.env.PATH ?? ""}` }
   const call = (script: string, args: string[], moreEnv: NodeJS.ProcessEnv = {}) => spawnSync(executable, [path.join(dir, script), ...args], {
     cwd: repo, env: { ...env, ...moreEnv }, encoding: "utf8", timeout: 20000,
   })

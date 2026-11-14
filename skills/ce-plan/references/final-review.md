@@ -12,8 +12,9 @@ Before finalizing, check:
 - Every major decision is grounded in the origin document or research
 - Material claims about existing code and fixtures match repository evidence; unresolved prerequisites that prevent implementation are recorded as blockers. Planned additions need not exist yet.
 - Each implementation unit is concrete, dependency-ordered, and implementation-ready
+- When the work ships as several PRs, every group except the first names a reason Phase 3.3 accepts for being a separate PR, and the PR grouping meets the three delivery conditions there: one creator per shared artifact, safe after every merge and deploy, and parallel PRs that do not conflict. Each group's `Waits on:` line gives the kind of every wait and names any deployment that must be live first
 - If test-first proof, characterization coverage, smoke-first verification, or another execution direction was explicit or strongly implied, the relevant units carry it forward with a lightweight natural-language `Execution note`
-- Each feature-bearing unit has test scenarios from every applicable category (happy path, edge cases, error paths, integration) — right-sized to the unit's complexity, not padded or skimped
+- Each feature-bearing unit has test scenarios for the behavior it builds (happy path, plus edge cases, error handling, or integration where the unit has them), right-sized to the unit's complexity, not padded or skimped
 - Test scenarios name specific inputs, actions, and expected outcomes without becoming test code
 - Feature-bearing units with blank or missing test scenarios are flagged as incomplete — feature-bearing units must have actual test scenarios, not just an annotation. The `Test expectation: none -- [reason]` annotation is only valid for non-feature-bearing units (pure config, scaffolding, styling)
 - Deferred items are explicit and not hidden as fake certainty
@@ -41,15 +42,17 @@ Show the user the plan-time call-outs before Phase 5.2 (Write Plan File) commits
 
 Run this step **whenever Phase 0.2 resolved an upstream Product Contract source** (Phase 0.2 is Find Upstream Product Contract). That source is either a requirements-only unified plan (an explicit path, or a discovered `product_contract_source: ce-brainstorm` plan in `<root>/plans/`) **or** a legacy `*-requirements.{md,html}` brainstorm doc. Do not run it on the Phase 0.1 fast paths (resume normal, deepen-intent). The new `ce-brainstorm` -> `ce-plan <unified-plan>` enrichment flow is brainstorm-sourced and must run this check, just like legacy flows. Skip Phase 5.1.5 only in solo invocation (no upstream source found; `product_contract_source: ce-plan-bootstrap`) — solo plans handled their synthesis in Phase 0.7 (Solo-Mode Scoping Synthesis).
 
-**Read `references/synthesis-summary.md` before composing the scoping synthesis.** It carries the affirmability test, keep-test criteria, detail test, summary shape budgets, the literal confirmation and auto-proceed templates, granularity rules, anti-patterns, revision-vs-confirmation discipline, doc-body reading rules, doc-shape routing, soft-cut behavior, self-redirect support, the worked PII compression example, and full headless-mode routing — all required for a well-shaped synthesis.
+**Read `references/synthesis-summary.md` before composing the scoping synthesis.** It defines what the user sees, the confirmation and auto-proceed lines, the revision loop, doc-body reading rules, soft-cut, self-redirect, headless routing, and where the internal draft lands in the plan.
 
-**Required output — do not skip; silent proceeding is not allowed.** Compose an internal three-bucket scope draft (Stated / Inferred / Out of scope — internal thinking that feeds plan-body routing at Phase 5.2, not the chat output). Derive call-outs (specific forks where user input materially changes the plan), run the pre-emit scans, then emit the **brainstorm-sourced** synthesis and **wait for user confirmation before continuing to Phase 5.2.** Its summary is two parts — a 1-2 sentence restatement of the brainstorm's scope in the brainstorm's own vocabulary, then the plan-specific scoping decisions the brainstorm did not make (full-brainstorm coverage vs. narrowed subset; adjacent refactors in or out; test scope at scenario level) — each affirmable without reading code, and never an enumeration of Implementation Units, file paths, or PR/sequencing shape. Emit the confirmation or auto-proceed template as specified in `references/synthesis-summary.md` (loaded above) rather than reconstructing it here.
+**Required output — do not skip; silent proceeding is not allowed.** Compose an internal three-bucket scope draft (Stated / Inferred / Out of scope — internal thinking that feeds plan-body routing at Phase 5.2, not the chat output). Derive call-outs (specific forks where user input materially changes the plan), then emit the **brainstorm-sourced** synthesis and **wait for user confirmation before continuing to Phase 5.2.** Its summary is two parts — a one-sentence anchor naming the brainstorm's scope in the brainstorm's own vocabulary, then the plan-specific scoping decisions the brainstorm did not make (full-brainstorm coverage vs. narrowed subset; adjacent refactors in or out; test scope at scenario level) — each affirmable without reading code, and never an enumeration of Implementation Units, file paths, or PR/sequencing shape. Use the confirmation or auto-proceed lines in `references/synthesis-summary.md` (loaded above) rather than reconstructing them here.
 
-**Blocking decision:** auto-proceed — announce without waiting — only when plan depth is **Lightweight AND zero call-outs survive**. Standard and Deep always ask for confirmation, even with zero call-outs.
+**Blocking decision:** auto-proceed — send the user the auto-proceed announcement in chat, then continue without waiting — only when plan depth is **Lightweight AND zero call-outs survive**. Standard and Deep always ask for confirmation, even with zero call-outs.
 
 **Headless / opt-in skip:** in headless mode, or when `SKIP_SCOPING_CONFIRM` resolved to skip in Phase 0.0, do not block — compose the internal draft, skip the chat-time confirmation, and route Inferred bets to a `## Assumptions` section at plan-write (Phase 5.2). The skip covers only this scoping confirmation; Phase 0.4 routing, Phase 0.5 blockers, Phase 2 questions, source-doc disambiguation, and the Phase 5.4 menu still run. Announcement wording and full routing: `references/synthesis-summary.md` ("Headless mode", "When to skip the blocking confirmation").
 
 #### 5.2 Write Plan File
+
+**Before the write, on an interactive run from an upstream Product Contract, check the chat:** the user must already have seen this run's Phase 5.1.5 synthesis or its auto-proceed announcement. Answers to your own planning questions are not that checkpoint, because the synthesis is where those answers show up as scope. If neither is in chat, send it now.
 
 Return to SKILL.md for its Model elevation step (Phase 5 workflow item 8), which decides whether a different model authors the plan. Resume here only after that step has finished; this reference does not dispatch the authoring route itself.
 
@@ -77,7 +80,7 @@ Write the unified plan artifact according to `references/plan-sections.md`.
 - If this is direct planning, create a complete unified plan in `<root>/plans/` with `product_contract_source: ce-plan-bootstrap`.
 - Set `artifact_contract: ce-unified-plan/v1` and `execution: code` for software implementation plans.
 - Do not set `artifact_contract: ce-unified-plan/v1` on universal-planning outputs, answer-seeking outputs, or approach-plans unless they include the full software implementation contract.
-- Do not write a launch prompt into the doc. The launch prompt is generated at handoff (Phase 5.4 menu — `/goal` copy-paste on Claude Code, `create_goal` on Codex) from the plan's current content, so it never goes stale; it points to Goal Capsule, Verification Contract, Definition of Done, and U-IDs rather than duplicating them.
+- Do not write a launch prompt into the doc. An executor reads the Goal Capsule, Verification Contract, Definition of Done, and U-IDs from the plan's current content, so a baked prompt would only duplicate them and go stale.
 
 **Session-settled decisions at plan-write.** A settled *planning* decision (a how-level choice made this session) is authored as a numbered, labeled Key Technical Decision carrying the annotation `(session-settled: user-directed — chosen over <alternative>: <one-line reason>)` (class per `references/settled-decisions.md`: `user-directed` or `user-approved`). A settled *product* decision already lives on its Product Contract Key Decision with `Governs R…` links — do **not** mirror it into a KTD; a KTD that makes the how-level choice instantiating it inherits the label and cites the governed R-IDs.
 
@@ -91,7 +94,7 @@ Plan written to <absolute path to plan>
 
 **The pipeline-mode exception SKILL.md points here for:** when research produced invalidating evidence (infeasible, wrong-thing, destructive) against any session-settled decision in play for the run — whether carried in the caller brief or already carried as a `session-settled:` label in the artifact being enriched (brainstorm Key Decisions or plan KTDs) — do not write the plan and do not resolve silently — return a blocked report to the caller containing the token `settled-decision-invalidated`, the decision, and the reason, parallel to the non-software pipeline stop in `references/universal-planning.md`, so the caller can stop.
 
-**CONCEPTS.md gap-fill (only if the file already exists):** If the plan body uses a domain term whose definition is missing from `CONCEPTS.md`, add the entry. **Domain entities, named processes, and status concepts with project-specific meaning only** — not file paths, class names, function signatures, or implementation decisions. `CONCEPTS.md` is a glossary, not a spec or catch-all. A term whose whole meaning an existing entry already carries is a refinement of that entry, not a new heading. Follow the format set by existing entries. Apply silently. Skip entirely if `CONCEPTS.md` does not exist — only ce-compound and ce-compound-refresh create the file or fold entries together, and only ce-compound-refresh retires or deletes an entry.
+**CONCEPTS.md gap-fill (only if the file already exists):** If the plan body uses a domain term whose definition is missing from `CONCEPTS.md`, add the entry. **Domain entities, named processes, and status concepts with project-specific meaning only** — not file paths, class names, function signatures, or implementation decisions. `CONCEPTS.md` is a glossary, not a spec or catch-all. A term whose whole meaning an existing entry already carries is a refinement of that entry, not a new heading. Follow the format set by existing entries. Apply silently. Skip entirely if `CONCEPTS.md` does not exist — only ce-compound creates the file or folds entries together, and only its refresh job retires or deletes an entry.
 
 #### 5.3 Confidence Check and Deepening
 
@@ -106,7 +109,7 @@ Interactive mode exists because on-demand deepening is a different situation for
 Determine the plan depth from the document:
 - **Lightweight** - small, bounded, low ambiguity, usually 2-4 implementation units
 - **Standard** - moderate complexity, some technical decisions, usually 3-6 units
-- **Deep** - cross-cutting, high-risk, or strategically important work, usually 4-8 units or phased delivery
+- **Deep** - cross-cutting, high-risk, or strategically important work, usually 4-8 units
 
 Build a risk profile. Treat these as high-risk signals:
 - Authentication, authorization, or security-sensitive behavior

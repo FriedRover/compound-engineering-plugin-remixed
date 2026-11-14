@@ -6,10 +6,10 @@ Resolution). Otherwise native dispatch runs exactly as `execution-strategy.md`
 describes on its own, with no Jev involvement anywhere in the run.
 
 This gate is TypeSafe's own "SDE Cascade" pattern applied to `ce-work`'s
-cheap-tier native workers: a cheap/fast worker (`Model: haiku`, see `ce-plan`'s
-`references/structure.md` 3.5) does the unit, a near-free Jev check looks for
+cheap-tier native workers: a cheap/fast worker (`Model: haiku`, defined in section 3.5 of the
+structure reference in the `ce-plan` skill) does the unit, a near-free Jev check looks for
 specific failure modes in what it reported, and only a flagged unit pays for
-real re-review. See `ce-plan`'s `references/jev-integration.md` for what Jev
+real re-review. See the Jev integration guide in the `ce-plan` skill for what Jev
 is and its primitives in general; this file is the runnable protocol.
 
 ## Resolution
@@ -28,7 +28,9 @@ is and its primitives in general; this file is the runnable protocol.
   the tier the SDE Cascade pattern targets (cheap, fast, most failure-prone).
   A config list `jev_verification_gate_tiers: [haiku, sonnet]` widens this;
   an absent or empty list means `[haiku]`. Units with no `Model:` field, or
-  on `sonnet`/`opus`/`fable` when not listed, are never gated.
+  on `sonnet`/`opus`/`fable` when not listed, are never gated. That includes a
+  unit whose model `references/worker-model.md` picked on its own (upstream's
+  mid-tier routing) rather than from a `Model:` field.
 - Firing threshold: `jev_verification_gate_threshold`, default `0.4`. Lower
   than the SDE Cascade cookbook's published `0.7` — this default favors
   catching more false negatives, since the cost of over-escalating one cheap

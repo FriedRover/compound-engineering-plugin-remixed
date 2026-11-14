@@ -5,8 +5,8 @@ flags a unit as a candidate, or when a unit's cited pattern points back here.
 This guide covers TypeSafe's Jev model in enough depth to (a) recognize when a
 plan's subject matter fits it and (b) write an accurate, optional Key
 Technical Decision naming it — it does not make `ce-plan` call the API itself.
-`ce-work`'s optional verification gate (`ce-work`'s
-`references/jev-verification-gate.md`) is the one place in this plugin that
+`ce-work`'s optional verification gate (the Jev verification gate
+reference in the `ce-work` skill) is the one place in this plugin that
 actually invokes Jev at runtime; everything here is advisory content for a
 plan that will become someone's implementation.
 
@@ -130,6 +130,6 @@ curl -s https://api.typesafe.ai/v1/systemone \
 
 Response carries `answers.<question_id>` (with `choice`/`score`/`noul`,
 `probabilities` where applicable, and `confidence`) plus `usage` token
-counts. Full schema: `references/jev-verification-gate.md` in `ce-work`
+counts. Full schema: the Jev verification gate reference in the `ce-work` skill
 carries a second, execution-oriented example; the upstream docs
 (`https://docs.typesafe.ai`) are authoritative for anything not covered here.

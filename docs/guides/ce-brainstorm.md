@@ -27,10 +27,12 @@ It does not render verdicts. If you ask whether to adopt a named external candid
 |----------|--------|
 | What does it do? | Collaborative dialogue to clarify scope, pressure-test premises, explore approaches, and write a requirements-only unified plan |
 | When to use it | Vague feature ideas, multiple plausible directions, unclear scope, work in unfamiliar territory, non-software decisions |
-| What it produces | Software: a requirements-only unified plan in `docs/plans/` with a Product Contract and R/A/F/AE IDs. Non-software: chat synthesis, optional save, optional Proof publish, optional handoff to `ce-plan`. Lightweight alignment can skip the doc. |
-| What's next | Software: `ce-plan` (recommended), ship autonomously with `lfg`, pressure-test or prototype, or keep asking. Non-software: create a plan, save the summary, publish to Proof, or stop. |
+| What it produces | Software: a requirements-only unified plan in `docs/plans/` with a Product Contract and R/A/F/AE IDs. Non-software: chat synthesis, optional save, an optional published copy, optional handoff to `ce-plan`. Lightweight alignment can skip the doc. |
+| What's next | Software: `ce-plan` (recommended), ship autonomously with `lfg`, pressure-test or prototype, or keep asking. Non-software: create a plan, save the summary, publish a copy, or stop. |
 
 ---
+
+When a kept prototype informs the requirements, Sources retains its absolute run path, decision capsule, and selected screens or states for later planning. This is optional machine-local evidence: a missing prototype does not block progress, and the requirements govern disagreements. Repository file references remain relative.
 
 ## Example invocations
 
@@ -113,6 +115,8 @@ These probes fire as prose, not menus. A 4-option menu would tell you which kind
 
 Phase 2 then surfaces 2-3 concrete approaches, including at least one non-obvious angle (inversion, constraint removal, or cross-domain analogy). Approaches sit at mechanism or product-shape granularity, not architecture. Architecture on thin research belongs in `ce-plan`. You see the alternatives before the recommendation.
 
+Offering ideas you did not ask for is part of the job; recommending them is where scope grows, because whatever the skill recommends is what gets built when you say "your call." So its recommendations add scope, a safeguard, or a process you did not name only when your goal is not met without it, or when leaving it out lets harm land before anyone would catch it. Something that would be hard to add later is put to you as an explicit choice rather than recommended. Other ideas come as non-default options or deferred items, and a recommendation never narrows something you asked for. The requirements commit only what you asked for or chose, what that needs to work, and what passes that test.
+
 ### 4. Visual probes, then prototype when a sketch is not enough
 
 When a decision is spatial, behavioral, or visual, the skill can offer a rough local visual probe. Probes are disposable, display-only sketches; you respond in chat. A decision a rough sketch cannot settle (finish or motion), or one a sketch was built for and failed to settle, routes to `ce-prototype` instead.
@@ -161,7 +165,7 @@ Skip it when:
 - You do not yet know what to work on → `/ce-ideate`
 - Requirements are already specified (a PRD exists, the issue is detailed) → `/ce-plan`
 - The request is whether to adopt a named external candidate → `/ce-pov`
-- You have a known root cause for a bug → `/ce-debug`
+- You have a bug → `/ce-debug`, or just fix it when the cause is known and the fix is obvious
 - The change is already specified down to the files it touches → just do it, or `/ce-work`
 
 ---
@@ -242,7 +246,7 @@ Not from the Phase 4 menu. Software next steps are `ce-plan` or `lfg` (which pla
 
 ## Model elevation
 
-When you want a specific model for the heavy reasoning step, `ce-brainstorm` can generate approaches on that model instead of your session model. Only approach generation is dispatched, with read access so it can verify its brief; the rest of the skill stays on your session model. Name a model in the prompt (`use fable`, `have opus generate these`), or set `brainstorm_model: <model>` in CE config.
+When you want a specific model for the heavy reasoning step, `ce-brainstorm` can generate approaches on that model instead of your session model. Only approach generation is dispatched, with read access so it can verify its brief; the rest of the skill stays on your session model. Name a model in the prompt (`use fable`, `have opus generate these`), or set `brainstorm_model: <model>` in CE config. `brainstorm_effort: <low|medium|high|xhigh|max>` sets the reasoning effort for approach generation. Unset keeps `high` on the Claude CLI route and the harness default on native dispatch. If the host's subagent tool takes no effort setting, the step still runs natively and the run says the effort was not applied. An unrecognized value is rejected, and the step runs inline instead of dispatching at an effort you did not configure.
 
 This works on any harness. The host serves the chosen model natively where it can, otherwise it invokes the Claude CLI (which must be installed and authenticated), otherwise it runs the step on your session model and says which precondition was unmet.
 

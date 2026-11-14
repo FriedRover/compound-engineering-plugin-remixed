@@ -16,7 +16,7 @@ function setup(root: string) {
   const repo = path.join(root, "repo"), dir = path.join(repo, "tests/skill-eval-cell")
   const bin = path.join(root, "bin"), out = path.join(root, "pack")
   fs.mkdirSync(dir, { recursive: true }); fs.mkdirSync(bin)
-  for (const file of ["run.ts", "pack.ts", "regrade.ts", "provenance.ts", "grade.ts", "hosts.ts", "extract.ts", "cli.ts", "path-shim.ts"]) {
+  for (const file of ["run.ts", "pack.ts", "regrade.ts", "provenance.ts", "grade.ts", "hosts.ts", "extract.ts", "cli.ts", "path-shim.ts", "converse.ts"]) {
     fs.copyFileSync(path.join(import.meta.dir, file), path.join(dir, file))
   }
   fs.mkdirSync(path.join(repo, "skills/fixture"), { recursive: true })
@@ -42,7 +42,8 @@ printf 'proof\\nFILES_READ: SKILL.md\\nACTIONS: none\\nDELEGATES_DISPATCHED: non
 `, { mode: 0o755 })
   const call = (script: string, args: string[]) => spawnSync(process.execPath, [path.join(dir, script), ...args], {
     cwd: repo, encoding: "utf8", timeout: 20_000,
-    env: { ...process.env, PATH: `${bin}${path.delimiter}${path.dirname(process.execPath)}${path.delimiter}${process.env.PATH ?? ""}` },
+    // A fake HOME keeps the cell's private Codex home from linking the operator's login.
+    env: { ...process.env, HOME: path.join(root, "home"), CODEX_HOME: path.join(root, "home", ".codex"), PATH: `${bin}${path.delimiter}${path.dirname(process.execPath)}${path.delimiter}${process.env.PATH ?? ""}` },
   })
   const collect = () => call("pack.ts", ["--all", "--hosts", "codex", "--arm", "post", "--out", out])
   const source = path.join(out, "pack.json")

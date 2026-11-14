@@ -6,7 +6,11 @@ Phase 1 of `ce-plan`. Read this before dispatching any research subagent.
 
 All specialist research and deepening prompts used in this phase are skill-local prompt assets under `references/agents/`. When dispatching one, read the matching file and seed a generic subagent with that prompt content plus the task-specific context below. Do not dispatch standalone agents by type/name.
 
+A generic subagent is one whose whole brief is the prompt you send it. When the host's subagent tool makes you name an agent, use only a name you have seen the host list, and list its agents before the first dispatch if you have not. Pick the plain one that adds no role of its own, which still counts as a generic subagent. Never pick a specialist, such as a reviewer or worker agent, whose own role prompt, output format, or tool limits would replace or narrow your prompt.
+
 This skill, not the prompt assets, decides which model tier each subagent uses. Local prompt files have no frontmatter. Use the platform's mid-tier model for external/organizational research prompts such as `slack-researcher` and `web-researcher` when the current harness exposes a known override; otherwise omit the override and inherit. Use inherited model for high-judgment architecture, migration, and planning-deepening prompts unless the harness has an established cheaper capable tier.
+
+If the user's or project's active instructions or the live prompt name a model for this subagent, use that model instead of the default tier above. They can name it by the subagent's tier, by its prompt-asset name, or for the subagents being dispatched. Without such an instruction, a model configured for this subagent's role takes precedence over the default tier.
 
 #### 1.1 Local Research
 
@@ -50,7 +54,7 @@ echo "$SCRATCH_DIR";
 Run these agents in parallel:
 
 - `references/agents/repo-research-analyst.md` — scope: **patterns**. Pass the planning context summary and `$SCRATCH_DIR/repo-research.md` so it can go directly to current feature patterns and the code that implements them.
-- `references/agents/learnings-researcher.md` — pass the planning context summary, the search-root list from **Pack discovery**, and `$SCRATCH_DIR/learnings.md`. When the origin document already carries `(pack: …)` citations, pass those pack ids and file paths too so the researcher skips re-reading cited files and searches only for gaps (the same pass-through shape as the Slack context section below).
+- `references/agents/learnings-researcher.md` — pass the planning context summary, the search-root list from **Pack discovery**, and `$SCRATCH_DIR/learnings.md`. When the origin document already carries `(pack: …)` citations, pass those pack ids and file paths too so the researcher skips re-reading cited files and searches only for gaps (the same pass-through shape as the Slack context section below). Dispatch it only when at least one search root holds a markdown file; an empty or missing store has nothing to search.
 
 **Agent-native planning triage** (conditional) — consider broadly, dispatch selectively. Dispatch a generic subagent with `references/agents/agent-native-planning-strategist.md` and `$SCRATCH_DIR/agent-native.md` in parallel with the local research agents when the request, origin document, or repo research indicates any of:
 
@@ -200,7 +204,7 @@ For **Standard** or **Deep** plans, or when user flow completeness is still uncl
 Use the output to:
 - Identify missing edge cases, state transitions, or handoff gaps
 - Tighten requirements trace or verification strategy
-- Add only the flow details that materially improve the plan
+- Add only the flow details that materially improve the plan. Carry an edge case forward as a concern for Phase 3 to judge, not as committed plan work
 
 #### 1.6 Bake-off
 

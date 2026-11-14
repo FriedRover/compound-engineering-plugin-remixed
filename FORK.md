@@ -10,7 +10,7 @@ for, and never collides with, a stock upstream install under the shared
 plugin name `compound-engineering-plugin`. It carries three custom features
 on top of upstream: **per-unit model selection**, an **optional
 TypeSafe/Jev integration**, and an **optional writing-standards hook in
-`ce-noslop`**. Everything else — all 36 skills, docs, install
+`ce-noslop`**. Everything else — every other skill, docs, install
 paths for other hosts — is unmodified upstream content. See the
 [README](README.md) for what Compound Engineering itself does.
 
@@ -99,8 +99,8 @@ model tiers instead of all inheriting the session model.
   definition, the four tiers, and the all-or-nothing rule
 - `skills/ce-plan/references/plan-sections.md` — one-line pointer to it
   from the unit-field summary
-- `skills/ce-work/references/execution-strategy.md` — native dispatch
-  reads `Model:` and passes it as the `model` override on the
+- `skills/ce-work/references/execution-strategy.md` ("Plan-supplied model") —
+  native dispatch reads `Model:` and passes it as the `model` override on the
   `Agent`/`Task` dispatch call
 
 **The four tiers, in brief** (full definitions and examples in
@@ -119,6 +119,18 @@ baseline units. An absent field on some-but-not-all units would leave a
 reader unable to tell "sonnet on purpose" from "not yet triaged," so
 `ce-plan` never does that. A plan where nothing warrants a non-default
 tier carries no `Model:` fields at all.
+
+**Layering with upstream's `worker-model.md` (since 3.38).** Upstream now
+chooses a worker's model at dispatch time (`ce-work`'s
+`references/worker-model.md`): mid-tier for a fully specified unit, the
+session model otherwise, never cheaper than mid-tier. A `Model:` field wins
+over that default, the same way upstream lets a model named in the user's
+instructions win. A unit with no `Model:` field follows `worker-model.md`
+unchanged. This fork keeps `haiku` (and `opus`/`fable`) available as explicit
+plan choices. Upstream's routing never picks them on its own, so a `Model:`
+label in the plan is how they get used. The host-name check, the one retry after a
+refused model, and the one escalation to the session model all apply to a
+`Model:` unit that runs below the session model.
 
 This is unrelated to, and does not interact with, the existing
 reasoning-elevation (`ce-plan`'s `references/reasoning-elevation.md`) or
@@ -266,6 +278,10 @@ git log --oneline main..upstream/main   # non-empty = upstream has moved
 
 ### How to rebase
 
+A merge also works and needs no force-push: branch off `main`, `git merge
+upstream/main`, resolve the same files, open a PR. The 3.38.1 sync used that
+route.
+
 ```bash
 cd ~/.claude/plugins/marketplaces/compound-engineering-plugin-remixed
 git fetch upstream
@@ -285,7 +301,7 @@ survived:
 
 ```bash
 grep -n "All-or-nothing per plan" skills/ce-plan/references/structure.md
-grep -n "Per-unit model selection" skills/ce-work/references/execution-strategy.md
+grep -n "Plan-supplied model" skills/ce-work/references/execution-strategy.md
 grep -n "3.5b Optional: TypeSafe/Jev Opportunity Check" skills/ce-plan/references/structure.md
 grep -n "Optional Jev verification gate" skills/ce-work/references/execution-strategy.md
 grep -n '"name": "compound-engineering-plugin-remixed"' .claude-plugin/marketplace.json

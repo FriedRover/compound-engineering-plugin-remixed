@@ -71,7 +71,6 @@ describe("ce-plan post-generation menu routing", () => {
     // phrasing tweaks without the assertion becoming brittle.
     const optionFragments: { name: string; fragment: string }[] = [
       { name: "Start `ce-work`", fragment: "Start `ce-work`" },
-      { name: "Run it as a /goal", fragment: "Run it as a `/goal`" },
       { name: "Create Issue", fragment: "Create Issue" },
       { name: "Prototype a remaining feel-question", fragment: "Prototype a remaining feel-question" },
       { name: "Open in browser", fragment: "Open in browser" },
@@ -270,29 +269,19 @@ describe("ce-plan post-generation menu routing", () => {
     ).toBe(false)
   })
 
-  test("Codex goal handoff is capability-based and menu-cap aware", () => {
+  test("handoff menu is menu-cap aware and offers no goal executor", () => {
     for (const [label, body] of [["plan-handoff.md", HANDOFF_BODY]] as const) {
-      expect(
-        body.includes("top-level `/goal` command"),
-        `${label} must not gate Codex goal handoff on a literal top-level /goal command; Codex exposes goal mode through create_goal.`,
-      ).toBe(false)
-      expect(
-        body.includes("hosts with a `/goal` command"),
-        `${label} must not describe goal availability as slash-command-only; use goal capability and Codex create_goal instead.`,
-      ).toBe(false)
       expect(
         /(?:Codex [`"]?request_user_input[`"]?[\s\S]{0,120}no option cap|no option cap[\s\S]{0,120}Codex [`"]?request_user_input[`"]?)/i.test(body),
         `${label} must not claim Codex request_user_input has no option cap; current Codex question tools only allow 2-3 explicit options.`,
       ).toBe(false)
-
-      expect(
-        body.includes("create_goal") && /goal capability/i.test(body),
-        `${label} must explicitly treat Codex create_goal as goal capability so the /goal option renders in Codex app runs.`,
-      ).toBe(true)
       expect(
         /request_user_input[\s\S]{0,120}2-3 explicit options/i.test(body),
         `${label} must document the Codex request_user_input 2-3 option cap so larger handoff menus use numbered chat instead of trimming choices.`,
       ).toBe(true)
+      // Execution goes through ce-work; a /goal option bypassed its review and WIP gates.
+      expect(body.includes("create_goal"), `${label} must not offer a create_goal executor.`).toBe(false)
+      expect(body.includes("Run it as a `/goal`"), `${label} must not offer a /goal executor.`).toBe(false)
     }
   })
 
@@ -512,5 +501,22 @@ describe("ce-plan output-contract gate", () => {
   test("Lightweight Durable grounds inline instead of dispatching research agents", () => {
     expect(RESEARCH_BODY).toMatch(/\*\*Lightweight\*\* Durable plan does not dispatch the research agents/)
     expect(RESEARCH_BODY).not.toContain("Local Research (Always Runs)")
+  })
+})
+
+describe("ce-plan pre-write scoping checkpoint", () => {
+  // Claude skipped the brainstorm-sourced synthesis on Lightweight runs after answering its own
+  // planning questions, writing the plan with no confirmation or announcement. Judged evals
+  // (2026-10-01) needed both lines: the body gate alone left 2 of 3 runs silent, the write-step
+  // check alone 2 of 4, and both together 0 of 4.
+  const FINAL_REVIEW_BODY = readFileSync(path.join(process.cwd(), "skills/ce-plan/references/final-review.md"), "utf8")
+
+  test("the always-loaded body states the pre-write checkpoint", () => {
+    expect(SKILL_BODY).toMatch(/the user sees the Phase 5\.1\.5 scoping synthesis in chat before the write/)
+  })
+
+  test("the write step checks the chat for the checkpoint before writing", () => {
+    const writeStep = FINAL_REVIEW_BODY.slice(FINAL_REVIEW_BODY.indexOf("#### 5.2 Write Plan File"))
+    expect(writeStep.slice(0, 600)).toMatch(/Answers to your own planning questions are not that checkpoint/)
   })
 })
