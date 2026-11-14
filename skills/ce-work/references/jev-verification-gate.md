@@ -28,7 +28,9 @@ is and its primitives in general; this file is the runnable protocol.
   the tier the SDE Cascade pattern targets (cheap, fast, most failure-prone).
   A config list `jev_verification_gate_tiers: [haiku, sonnet]` widens this;
   an absent or empty list means `[haiku]`. Units with no `Model:` field, or
-  on `sonnet`/`opus`/`fable` when not listed, are never gated.
+  on `sonnet`/`opus`/`fable` when not listed, are never gated. That includes a
+  unit whose model `references/worker-model.md` picked on its own (upstream's
+  mid-tier routing) rather than from a `Model:` field.
 - Firing threshold: `jev_verification_gate_threshold`, default `0.4`. Lower
   than the SDE Cascade cookbook's published `0.7` — this default favors
   catching more false negatives, since the cost of over-escalating one cheap

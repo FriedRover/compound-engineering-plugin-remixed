@@ -260,6 +260,11 @@ test("unsafe grading paths cannot read outside the evidence", () => fixture(({ p
   pack.scenarios[scenario.id].scenario_sha256 = valueHash(scenario)
   save()
   expect(() => regradePack(packPath, "original")).toThrow(/unsafe/)
+  scenario.grade.workspace_contains = undefined
+  scenario.grade.json_field = [{ path: "../../../private.json", field: "secret", any_of: ["x"] }]
+  pack.scenarios[scenario.id].scenario_sha256 = valueHash(scenario)
+  save()
+  expect(() => regradePack(packPath, "original")).toThrow(/unsafe/)
 }))
 
 test("excluded git contents cannot become historical grading evidence", () => fixture(({ hostDir, out, pack, scenario, save, packPath }) => {
@@ -297,3 +302,17 @@ if (process.platform !== "win32") {
     expect(() => regradePack(packPath, "original")).toThrow(/symlink/)
   }))
 }
+
+test("a conversation persona is sealed with the evidence and checked against the recorded hash", () => fixture(({ out, reseal }) => {
+  const inputPath = path.join(out, "input-manifest.json")
+  const input = JSON.parse(fs.readFileSync(inputPath, "utf8"))
+  fs.writeFileSync(path.join(out, "persona.md"), "You run billing.")
+  writeJSON(inputPath, { ...input, persona_sha256: sha256("You run billing.") })
+  reseal()
+  verifyEvidence(out)
+  fs.writeFileSync(path.join(out, "persona.md"), "You run billing and want everything.")
+  expect(() => verifyEvidence(out)).toThrow(/changed/)
+  fs.rmSync(path.join(out, "persona.md"))
+  reseal()
+  expect(() => verifyEvidence(out)).toThrow(/persona/)
+}))

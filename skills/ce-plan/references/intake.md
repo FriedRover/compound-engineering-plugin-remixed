@@ -18,7 +18,7 @@ Phase 0.2 through 0.7 of `ce-plan`. Read this before resolving the upstream prod
 Every plan should contain:
 - A clear problem frame and scope boundary
 - Concrete requirements traceability back to the request or origin document
-- Repo-relative file paths for the work being proposed (never absolute paths — see Planning Rules)
+- Repo-relative file paths for the work being proposed (see the path policy in `references/output-mode.md`)
 - Explicit test file paths for feature-bearing implementation units
 - Decisions with rationale, not just tasks
 - Existing patterns or code references to follow
@@ -43,6 +43,8 @@ Before asking planning questions, resolve the upstream product source in this or
 If multiple source documents match, ask which one to use using the platform's blocking question tool when available (see Interaction Method). Otherwise, present numbered options in chat and wait for the user's reply before proceeding.
 
 **Session-settled decisions are an input tier alongside the document sources above.** Decisions already examined-and-chosen in the invoking conversation — or carried in a distilled brief passed as invocation input, from the user or a calling skill — enter planning as settled constraints, not open questions. Read `references/settled-decisions.md` before classifying decisions carried in from the conversation; it defines the settlement test, the two provenance classes, the annotation shape, the capture rules, and what a brief entry must include. Classifying without it risks labeling unexamined assertions as settled, or re-asking decisions the user already closed.
+
+When input carries a prototype run or capsule, read its decisions when available. Carry its source reference forward from the session or upstream artifact under the Prototype sources contract in `references/plan-sections.md`, including when enriching an existing plan.
 
 #### 0.3 Use the Product Contract as Primary Input
 
@@ -149,10 +151,10 @@ Show the user the call-outs — the specific forks in scope or approach where us
 
 Runs **only in solo invocation** — when Phase 0.2 found no upstream Product Contract source (no requirements-only unified plan and no legacy `*-requirements` doc; `product_contract_source: ce-plan-bootstrap`) AND Phase 0.4 stayed in ce-plan (did not route to ce-debug, ce-work, or universal-planning) AND Phase 0.5 cleared (no unresolved blockers) AND not on Phase 0.1 fast paths (resume normal, deepen-intent) AND Phase 0.6's Output Contract gate selected Durable. Each of these is an explicit condition. Skip Phase 0.7 entirely when any of them fails — upstream-sourced invocations (unified-plan enrichment or legacy brainstorm) defer to Phase 5.1.5 instead.
 
-**Read `references/synthesis-summary.md` before composing the scoping synthesis.** It defines the affirmability test, keep-test criteria, detail test, summary shape budgets, the literal confirmation and auto-proceed templates, granularity rules, anti-patterns, revision-vs-confirmation discipline, doc-shape routing, soft-cut behavior, self-redirect support, the worked PII compression example, and full headless-mode routing — all required for a well-shaped synthesis.
+**Read `references/synthesis-summary.md` before composing the scoping synthesis.** It defines what the user sees, the confirmation and auto-proceed lines, the revision loop, soft-cut, self-redirect, headless routing, and where the internal draft lands in the plan.
 
-**Required output of this step — do not skip; silent proceeding is not allowed.** Compose an internal three-bucket scope draft (Stated / Inferred / Out of scope — internal thinking that feeds where content goes in the plan body at Phase 5.2, not the chat output). Derive call-outs (specific forks where user input materially changes the plan), run the pre-emit scans that `references/synthesis-summary.md` lists, then emit the **solo-variant** synthesis and **wait for user confirmation before continuing to Phase 1.** The summary is a scope claim — what the plan will target, what it will not, at affirm-or-redirect level — never an enumeration of Implementation Units, file paths, or PR/sequencing shape (the plan-write step decides those, and they are not knowable yet). Emit the confirmation or auto-proceed template as specified in `references/synthesis-summary.md` (loaded above) rather than reconstructing it here.
+**Required output of this step — do not skip; silent proceeding is not allowed.** Compose an internal three-bucket scope draft (Stated / Inferred / Out of scope — internal thinking that feeds where content goes in the plan body at Phase 5.2, not the chat output). Derive call-outs (specific forks where user input materially changes the plan), then emit the **solo-variant** synthesis and **wait for user confirmation before continuing to Phase 1.** It states the problem as you understand it, then a scope claim — what the plan will target, what it will not, at affirm-or-redirect level — never an enumeration of Implementation Units, file paths, or PR/sequencing shape (the plan-write step decides those, and they are not knowable yet). Use the confirmation or auto-proceed lines in `references/synthesis-summary.md` (loaded above) rather than reconstructing them here.
 
-**Blocking decision:** auto-proceed — announce without waiting — only when plan depth is **Lightweight AND zero call-outs survive**. Standard and Deep always present the confirmation and wait for it, even with zero call-outs.
+**Blocking decision:** auto-proceed — send the user the auto-proceed announcement in chat, then continue without waiting — only when plan depth is **Lightweight AND zero call-outs survive**. Standard and Deep always present the confirmation and wait for it, even with zero call-outs.
 
 **Headless / opt-in skip:** in headless mode, or when `SKIP_SCOPING_CONFIRM` resolved to skip in Phase 0.0, do not block — compose the internal draft, skip the chat-time confirmation, and write Inferred bets into a `## Assumptions` section when the plan is written (Phase 5.2). The skip covers only this scoping confirmation; Phase 0.4 routing, Phase 0.5 blockers, Phase 2 questions, source-doc disambiguation, and the Phase 5.4 menu still happen. Announcement wording and full routing: `references/synthesis-summary.md` ("Headless mode", "When to skip the blocking confirmation").

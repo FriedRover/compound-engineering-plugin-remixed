@@ -6,8 +6,6 @@ argument-hint: "[optional: feature description, requirements doc path, plan path
 
 # Create Technical Plan
 
-**The current year is 2026.**
-
 **Outcome:** a plan for carrying out and checking the agreed work while preserving its outcome and constraints. Resolve technical choices from evidence; leave adequate instructions unchanged. `ce-brainstorm` defines **WHAT**, `ce-plan` plans **HOW**, and `ce-work` executes. A prior brainstorm is optional.
 
 **An explicit invocation always produces a plan.** Never classify a direct invocation as "not a planning task" and route out. It may select any output contract below, and the smallest valid plan is a few sentences in chat.
@@ -23,6 +21,8 @@ Writing the file, checking confidence, and running or explicitly skipping `ce-do
 ## Interaction Method
 
 Ask one question at a time through the host's blocking question tool already in the current tool list. Match by capability; never probe a user-facing tool to discover it. If none is listed or a real question call errors, render numbered choices in chat; never silently skip a required question. If no feature description was supplied, ask what to plan and wait.
+
+When a question is a yes/no or a batch confirm, word it so that agreeing accepts the recommendation. Numbered choices stay numbered choices.
 
 ## Output Contract
 
@@ -46,13 +46,13 @@ Phases run in order unless a reference routes out or short-circuits. Read a phas
 
 ### Phases 1-4: Research and Compose
 
-4. Read `references/research.md` before gathering context. It defines local and external research, consolidation, depth reclassification, flow analysis, and the Bake-off gate.
-5. Read `references/structure.md` before resolving questions or structuring the plan. It defines settled-decision handling, stable U-IDs, technical design, depth, and planning boundaries.
+4. Read `references/research.md` before gathering context.
+5. Read `references/structure.md` before resolving questions or structuring the plan.
 6. Compose from `references/plan-sections.md` plus the format-rendering reference selected by `output-mode.md`.
 
 ### Phase 5: Review, Write, Deepen, and Hand Off
 
-7. Read `references/final-review.md` before the pre-write review. It defines Phase 5.1 through 5.3.2: scoping synthesis, writing the file, unified-plan metadata, confidence mode, and deepening.
+7. Read `references/final-review.md` before the pre-write review; it defines Phase 5.1 through 5.3.2. On an interactive run from a brainstorm, the user sees the Phase 5.1.5 scoping synthesis in chat before the write: a confirmation to wait on, or its one-line auto-proceed announcement.
 8. **Model elevation.** Immediately before authoring, read `references/reasoning-elevation.md`, resolve the choice at this boundary, and follow it. Do not author until activation resolution has completed and any selected dispatch or transparent fallback has settled.
 9. In pipeline mode, evidence that invalidates a decision settled earlier in the session stops the write. Return the exact token `settled-decision-invalidated`, the decision, and the reason; do not resolve it silently.
 10. Write the plan before presenting options, then complete the confidence path `final-review.md` defines.
