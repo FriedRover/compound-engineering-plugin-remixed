@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "jmatthewhouse's personal fork of the Compound Engineering plugin marketplace (upstream: EveryInc/compound-engineering-plugin), with per-unit model selection and an optional TypeSafe/Jev integration added. See FORK.md.",
-    "version": "1.0.3"
+    "version": "1.1.0"
   },
   "plugins": [
     {
