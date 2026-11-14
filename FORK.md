@@ -127,8 +127,8 @@ session model otherwise, never cheaper than mid-tier. A `Model:` field wins
 over that default, the same way upstream lets a model named in the user's
 instructions win. A unit with no `Model:` field follows `worker-model.md`
 unchanged. This fork keeps `haiku` (and `opus`/`fable`) available as explicit
-plan choices, and upstream's warning that cheaper models take more turns and can
-cost more applies to any `haiku` unit. The host-name check, the one retry after a
+plan choices. Upstream's routing never picks them on its own, so a `Model:`
+label in the plan is how they get used. The host-name check, the one retry after a
 refused model, and the one escalation to the session model all apply to a
 `Model:` unit that runs below the session model.
 

@@ -6,10 +6,10 @@ Resolution). Otherwise native dispatch runs exactly as `execution-strategy.md`
 describes on its own, with no Jev involvement anywhere in the run.
 
 This gate is TypeSafe's own "SDE Cascade" pattern applied to `ce-work`'s
-cheap-tier native workers: a cheap/fast worker (`Model: haiku`, see `ce-plan`'s
-`references/structure.md` 3.5) does the unit, a near-free Jev check looks for
+cheap-tier native workers: a cheap/fast worker (`Model: haiku`, defined in section 3.5 of the
+structure reference in the `ce-plan` skill) does the unit, a near-free Jev check looks for
 specific failure modes in what it reported, and only a flagged unit pays for
-real re-review. See `ce-plan`'s `references/jev-integration.md` for what Jev
+real re-review. See the Jev integration guide in the `ce-plan` skill for what Jev
 is and its primitives in general; this file is the runnable protocol.
 
 ## Resolution

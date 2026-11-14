@@ -10,7 +10,8 @@ import { describe, expect, test } from "bun:test"
 // composing run.
 
 const SKILL_DIR = path.join(process.cwd(), "skills/ce-noslop")
-const KERNEL_BYTE_LIMIT = 4096
+// Fork: upstream's limit is 4096; the extra bytes hold the house-style pointer line in SKILL.md.
+const KERNEL_BYTE_LIMIT = 4160
 const INVOCATION_TOKEN = "through the `ce-noslop` skill"
 
 function readRepoFile(rel: string): string {
